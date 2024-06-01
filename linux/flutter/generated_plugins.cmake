@@ -3,7 +3,10 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  flutter_localization
   nb_utils
+  screen_retriever
+  window_manager
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

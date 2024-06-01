@@ -8,6 +8,23 @@ import 'Languages.dart';
 class AppLocalizations extends LocalizationsDelegate<BaseLanguage> {
   const AppLocalizations();
 
+  List<LanguageDataModel> languageList() {
+    return [
+      LanguageDataModel(
+          id: 1,
+          name: 'English',
+          languageCode: 'en',
+          fullLanguageCode: 'en-US',
+          flag: 'assets/flag/ic_us.png'),
+      LanguageDataModel(
+          id: 2,
+          name: 'Українська',
+          languageCode: 'uk',
+          fullLanguageCode: 'uk-UA',
+          flag: 'assets/flag/ic_ru.png'),
+    ];
+  }
+
   @override
   Future<BaseLanguage> load(Locale locale) async {
     switch (locale.languageCode) {
