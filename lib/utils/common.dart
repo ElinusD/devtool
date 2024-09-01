@@ -4,8 +4,10 @@ import 'package:encrypt/encrypt.dart' as cryptoMaker;
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:path_provider/path_provider.dart';
+import 'package:random_password_generator/random_password_generator.dart';
 
 String settingsPassFileName = 'wwrSfferfF57567VDrrfVge';
+final password = RandomPasswordGenerator();
 
 Future<String> readFileContents(String group, String fileName) async {
   try {
@@ -167,6 +169,41 @@ String mapToJsonString(Map<String, TextEditingController> map) {
 
   return jsonEncode(jsonMap);
 }
+
+//password
+(String, Color) passwordStrength(String passwordValue) {
+  double passwordstrength;
+  String passStrength;
+  Color color = Colors.white;
+
+  passwordstrength = password.checkPassword(password: passwordValue);
+  if (passwordstrength < 0.3) {
+    color = Colors.red;
+    passStrength = ' Weak';
+  } else if (passwordstrength < 0.6) {
+    color = Colors.yellow;
+    passStrength = ' Medium';
+  } else if (passwordstrength < 0.9) {
+    color = Colors.orange;
+    passStrength = ' Good';
+  } else {
+    color = Colors.green;
+    passStrength = ' Strong';
+  }
+
+  return (passStrength, color);
+}
+
+String generateNewPassword() {
+  return password.randomPassword(
+      letters: true,
+      numbers: true,
+      passwordLength: 10,
+      specialChar: true,
+      uppercase: true);
+}
+
+//password end
 
 String capitalize(String s) => s[0].toUpperCase() + s.substring(1);
 
