@@ -170,13 +170,32 @@ String mapToJsonString(Map<String, TextEditingController> map) {
   return jsonEncode(jsonMap);
 }
 
+Future<void> errorMessage(BuildContext context, String message) async {
+  await showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Error'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 //password
 (String, Color) passwordStrength(String passwordValue) {
-  double passwordstrength;
+  double passwordstrength = password.checkPassword(password: passwordValue);;
   String passStrength;
   Color color = Colors.white;
 
-  passwordstrength = password.checkPassword(password: passwordValue);
   if (passwordstrength < 0.3) {
     color = Colors.red;
     passStrength = ' Weak';
@@ -198,7 +217,7 @@ String generateNewPassword() {
   return password.randomPassword(
       letters: true,
       numbers: true,
-      passwordLength: 10,
+      passwordLength: 12,
       specialChar: true,
       uppercase: true);
 }

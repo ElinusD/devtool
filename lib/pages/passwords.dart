@@ -1,22 +1,20 @@
 import 'dart:async';
 
+import 'package:devtool/main.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:devtool/utils/db.dart';
 import 'package:flutter/services.dart';
 import '../utils/common.dart';
-import './includes/header.dart';
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  final String title;
+class PasswordsPage extends StatefulWidget {
+  const PasswordsPage({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<PasswordsPage> createState() => _PasswordsPageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _PasswordsPageState extends State<PasswordsPage> {
   bool helpIsHovered = false;
   bool aboutIsHovered = false;
   bool itemWidgetVisible = false;
@@ -24,7 +22,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget? itemWidgetData;
   int? _selectedRowIndex;
-  List<ListTile> _itemsList = [];
+  List<Widget> _itemsList = [];
   final TextEditingController _titleEditController = TextEditingController();
   final TextEditingController _loginEditController = TextEditingController();
   final TextEditingController _passwordEditController = TextEditingController();
@@ -55,12 +53,9 @@ class _MyHomePageState extends State<MyHomePage> {
     passwordsFromDB = await getPasswords();
 
     setState(() {
-      //_selectedRowIndex = passwordsFromDB[0]['id'];
       _itemsList = generatePasswordsList();
     });
   }
-
-
 
   List<Widget> _generateCells(item) {
     List<String> listOfColumns = ['title', 'login', 'password', 'url'];
@@ -75,7 +70,7 @@ class _MyHomePageState extends State<MyHomePage> {
         listOfCells.add(
           Expanded(
             child: Container(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.symmetric(horizontal: 10),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Row(
@@ -84,7 +79,10 @@ class _MyHomePageState extends State<MyHomePage> {
                       Icons.shield,
                       color: color,
                     ),
-                    Text(passStrength),
+                    Text(
+                      passStrength,
+                      style: const TextStyle(fontSize: 13),
+                    ),
                   ],
                 ),
               ),
@@ -95,8 +93,11 @@ class _MyHomePageState extends State<MyHomePage> {
         listOfCells.add(
           Expanded(
             child: Container(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(item[listOfColumns[i]]),
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Text(
+                item[listOfColumns[i]] == '' ? '--' : item[listOfColumns[i]],
+                style: const TextStyle(fontSize: 13),
+              ),
             ),
           ),
         );
@@ -106,31 +107,24 @@ class _MyHomePageState extends State<MyHomePage> {
     return listOfCells;
   }
 
-  List<ListTile> generatePasswordsList() {
-    List<ListTile> listRows = [];
+  List<Widget> generatePasswordsList() {
+    List<Widget> listRows = [];
 
     for (var item in passwordsFromDB) {
       listRows.add(
-        ListTile(
-          mouseCursor: SystemMouseCursors.click,
-          // tileColor: Color.fromRGBO(47, 38, 79, 1),
-          //pages[appPageName]?['active'] ? Colors.grey : null,
-          // visualDensity: const VisualDensity(vertical: -4),
-          // to compact
-          // dense: true,
-          // leading: SizedBox(
-          //   // width: 30, // Constrain the width of the leading widget
-          //   child: Icon(
-          //     Icons.security,
-          //     color: Colors.black87,
-          //     size: 18,
-          //   ),
-          // ),
-          onTap: () {
-            _onRowTap(item);
-          },
-          title: Row(
-            children: _generateCells(item),
+        Container(
+          color: _selectedRowIndex == item['id'] ? Colors.black12 : null,
+          child: ListTile(
+            mouseCursor: SystemMouseCursors.click,
+            contentPadding: EdgeInsets.all(0),
+            // focusColor: Colors.grey,
+            selected: _selectedRowIndex == item['id'],
+            onTap: () {
+              _onRowTap(item);
+            },
+            title: Row(
+              children: _generateCells(item),
+            ),
           ),
         ),
       );
@@ -166,12 +160,12 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               TableRow(
                 children: [
-                  const TableCell(
+                  TableCell(
                       verticalAlignment: TableCellVerticalAlignment.middle,
                       child: Padding(
                           padding: EdgeInsets.all(5),
                           child: Text(
-                            'Title',
+                            language!.title,
                             style: TextStyle(fontSize: 12),
                           ))),
                   TableCell(
@@ -185,12 +179,12 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               TableRow(
                 children: [
-                  const TableCell(
+                  TableCell(
                       verticalAlignment: TableCellVerticalAlignment.middle,
                       child: Padding(
                           padding: EdgeInsets.all(5),
                           child: Text(
-                            'Login',
+                            language!.login,
                             style: TextStyle(fontSize: 12),
                           ))),
                   TableCell(
@@ -198,7 +192,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           padding: const EdgeInsets.all(5),
                           child: TextField(
                             decoration: InputDecoration(
-                              hintText: 'Login',
+                              hintText: language!.login,
                               contentPadding: const EdgeInsets.only(top: 10),
                               suffixIcon: Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -224,12 +218,12 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               TableRow(
                 children: [
-                  const TableCell(
+                  TableCell(
                       verticalAlignment: TableCellVerticalAlignment.middle,
                       child: Padding(
                           padding: EdgeInsets.all(5),
                           child: Text(
-                            'password',
+                            language!.password,
                             style: TextStyle(fontSize: 12),
                           ))),
                   TableCell(
@@ -240,7 +234,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       controller: _passwordEditController,
                       obscureText: hidePassword ? _isObscure : false,
                       decoration: InputDecoration(
-                        hintText: 'Password',
+                        hintText: language!.password,
                         contentPadding: EdgeInsets.only(top: 10),
                         suffixIcon: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -270,7 +264,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                 size: 17,
                               ),
                               onPressed: () {
-                                _passwordEditController.text = generateNewPassword();
+                                _passwordEditController.text =
+                                    generateNewPassword();
                               },
                             ),
                             hidePassword
@@ -295,12 +290,12 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               TableRow(
                 children: [
-                  const TableCell(
+                  TableCell(
                       verticalAlignment: TableCellVerticalAlignment.middle,
                       child: Padding(
                           padding: EdgeInsets.all(5),
                           child: Text(
-                            'url',
+                            language!.url,
                             style: TextStyle(fontSize: 12),
                           ))),
                   TableCell(
@@ -308,7 +303,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           padding: EdgeInsets.all(5),
                           child: TextField(
                             decoration: InputDecoration(
-                              hintText: 'URL',
+                              hintText: language!.url,
                               contentPadding: const EdgeInsets.only(top: 10),
                               suffixIcon: Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -333,10 +328,14 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               TableRow(
                 children: [
-                  const TableCell(
+                  TableCell(
                       verticalAlignment: TableCellVerticalAlignment.middle,
                       child: Padding(
-                          padding: EdgeInsets.all(5), child: Text('comment'))),
+                          padding: EdgeInsets.all(5),
+                          child: Text(
+                            language!.comment,
+                            style: TextStyle(fontSize: 12),
+                          ))),
                   TableCell(
                       child: Padding(
                           padding: EdgeInsets.all(5),
@@ -348,28 +347,61 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ],
           ),
+          SizedBox(
+            height: 20,
+          ),
           showSaveButton
               ? Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    ElevatedButton(
+                    ElevatedButton.icon(
+                      icon: Icon(Icons.save),
+                      label: Text(language!.save),
+                      style: ElevatedButton.styleFrom(
+                        // primary: Colors.green, // Background color
+                        // onPrimary: Colors.white, // Text and icon color
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 12.0, vertical: 12.0), // Padding
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(18.0), // Rounded corners
+                        ),
+                      ),
                       onPressed: () async {
-                        await updateData(
-                            item['id'],
-                            _titleEditController.text,
-                            _loginEditController.text,
-                            _passwordEditController.text,
-                            _urlEditController.text,
-                            _commentEditController.text);
-                        _loadPasswordsList();
+                        if (_titleEditController.text == '') {
+                          errorMessage(context, 'Title is empty');
+                        } else {
+                          await updateData(
+                              item['id'],
+                              _titleEditController.text,
+                              _loginEditController.text,
+                              _passwordEditController.text,
+                              _urlEditController.text,
+                              _commentEditController.text);
+                          _loadPasswordsList();
+                        }
                       },
-                      child: const Text('SAVE'),
                     ),
-                    ElevatedButton(
+                    SizedBox(
+                      width: 10,
+                    ),
+                    ElevatedButton.icon(
+                      icon: Icon(Icons.delete_forever),
+                      label: Text(language!.delete),
+                      style: ElevatedButton.styleFrom(
+                        // primary: Colors.green, // Background color
+                        // onPrimary: Colors.white, // Text and icon color
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 12.0, vertical: 12.0), // Padding
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(18.0), // Rounded corners
+                        ),
+                      ),
                       onPressed: () async {
                         _confirmDeleteRecord(context, item['id']);
                       },
-                      child: const Text('DELETE'),
-                    )
+                    ),
                   ],
                 )
               : SizedBox(),
@@ -405,17 +437,21 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Cancel'),
+              child: Text(language!.cancel),
             ),
             TextButton(
               onPressed: () {
-                insertData(
-                    _titleEditController.text,
-                    _loginEditController.text,
-                    _passwordEditController.text,
-                    _urlEditController.text,
-                    _commentEditController.text);
-                Navigator.of(context).pop();
+                if (_titleEditController.text == '') {
+                  errorMessage(context, 'Title is empty');
+                } else {
+                  insertData(
+                      _titleEditController.text,
+                      _loginEditController.text,
+                      _passwordEditController.text,
+                      _urlEditController.text,
+                      _commentEditController.text);
+                  Navigator.of(context).pop();
+                }
               },
               child: const Text('OK'),
             ),
@@ -441,13 +477,13 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: () {
                 Navigator.of(context).pop(false); // User pressed "Cancel"
               },
-              child: Text('Cancel'),
+              child: Text(language!.cancel),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop(true); // User pressed "Confirm"
               },
-              child: Text('Confirm'),
+              child: Text(language!.confirm),
             ),
           ],
         );
@@ -460,6 +496,64 @@ class _MyHomePageState extends State<MyHomePage> {
       itemWidgetVisible = false;
       _loadPasswordsList();
     }
+  }
+
+  Row getHeader() {
+    return Row(
+      children: [
+        const SizedBox(
+          width: 10,
+        ),
+        ElevatedButton.icon(
+          icon: const Icon(Icons.add),
+          onPressed: () {
+            setState(() {
+              itemWidgetData = null;
+              itemWidgetVisible = false;
+            });
+            _openModalAddItem(context);
+          },
+          label: Text(language!.add),
+          style: ElevatedButton.styleFrom(
+            iconColor: Colors.white,
+            foregroundColor: Colors.white,
+            backgroundColor: Colors.green,
+          ),
+        ),
+        // Icon on the left side
+        const Spacer(),
+        // Spacer to push the TextField to the center
+        SizedBox(
+          width: 200.0, // Fixed width of TextField
+          height: 30,
+          child: TextField(
+            style: const TextStyle(fontSize: 13),
+            decoration: InputDecoration(
+              hintText: language!.search,
+              hintStyle: const TextStyle(fontSize: 12),
+              filled: true,
+              // Enable the background color
+              fillColor: const Color.fromRGBO(230, 230, 230, 1),
+              // Set the background color
+              //contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 12.0), // Adjust the height of the text field
+              border: InputBorder.none,
+              // Remove the border
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15),
+                // Border radius
+                borderSide: BorderSide.none, // Remove the border
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15),
+                // Border radius
+                borderSide: BorderSide.none, // Remove the border
+              ),
+            ),
+          ),
+        ),
+        const Spacer(),
+      ],
+    );
   }
 
   @override
@@ -478,98 +572,10 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             Expanded(
               child: Row(children: [
-                Container(
-                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
-                  width: 200,
-                  child: Column(children: [
-                    Container(
-                        margin: const EdgeInsets.fromLTRB(0, 0, 0, 10),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(13),
-                          color: Colors.white,
-                        ),
-                        child: const Column(
-                          children: [
-                            ListTile(
-                              mouseCursor: SystemMouseCursors.click,
-                              // tileColor: Color.fromRGBO(47, 38, 79, 1),
-                              //pages[appPageName]?['active'] ? Colors.grey : null,
-                              // visualDensity: const VisualDensity(vertical: -4),
-                              // to compact
-                              // dense: true,
-                              leading: SizedBox(
-                                // width: 30, // Constrain the width of the leading widget
-                                child: Icon(
-                                  Icons.security,
-                                  color: Colors.black87,
-                                  size: 18,
-                                ),
-                              ),
-                              title: Text(
-                                'Passwords',
-                                style: TextStyle(
-                                    color: Colors.black87, fontSize: 12),
-                              ),
-                            ),
-                            ListTile(
-                              mouseCursor: SystemMouseCursors.click,
-                              // tileColor: Color.fromRGBO(47, 38, 79, 1),
-                              leading: SizedBox(
-                                // width: 30, // Constrain the width of the leading widget
-                                child: Icon(
-                                  Icons.security,
-                                  color: Colors.black87,
-                                  size: 18,
-                                ),
-                              ),
-                              title: Text(
-                                'Passwords',
-                                style: TextStyle(
-                                    color: Colors.black87, fontSize: 12),
-                              ),
-                            ),
-                          ],
-                        )),
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(13),
-                        color: Colors.white,
-                      ),
-                      child: const ListTile(
-                        mouseCursor: SystemMouseCursors.click,
-                        leading: SizedBox(
-                          child: Icon(
-                            Icons.security,
-                            color: Colors.black87,
-                            size: 18,
-                          ),
-                        ),
-                        title: Text(
-                          'Settings',
-                          style: TextStyle(color: Colors.black87, fontSize: 12),
-                        ),
-                        // onTap: () {
-                        //   setState(() {});
-                        // },
-                      ),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          itemWidgetData = null;
-                          itemWidgetVisible = false;
-                        });
-                        _openModalAddItem(context);
-                      },
-                      child: const Text('Insert Data'),
-                    ),
-                  ]),
-                ),
                 Expanded(
                   child: Container(
-                    // alignment: AlignmentGeometry.,
                     padding: const EdgeInsets.all(16.0),
-                    margin: const EdgeInsets.fromLTRB(0, 0, 12, 0),
+                    margin: const EdgeInsets.fromLTRB(10, 0, 12, 0),
                     decoration: const BoxDecoration(
                       borderRadius: BorderRadius.only(
                           topLeft: Radius.circular(13),
@@ -583,19 +589,19 @@ class _MyHomePageState extends State<MyHomePage> {
                             Expanded(
                                 child: Container(
                                     padding: const EdgeInsets.all(8.0),
-                                    child: Text('Title'))),
+                                    child: Text(language!.title))),
                             Expanded(
                                 child: Container(
                                     padding: const EdgeInsets.all(8.0),
-                                    child: Text('Login'))),
+                                    child: Text(language!.login))),
                             Expanded(
                                 child: Container(
                                     padding: const EdgeInsets.all(8.0),
-                                    child: Text('Password Strength'))),
+                                    child: Text(language!.passwordStrength))),
                             Expanded(
                                 child: Container(
                                     padding: const EdgeInsets.all(8.0),
-                                    child: Text('URL'))),
+                                    child: Text(language!.url))),
                           ],
                         ),
                       ),
@@ -615,62 +621,6 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: itemWidgetData ?? SizedBox.shrink(),
                 )
               ]),
-            ),
-            Container(
-              height: 30.0,
-              // Set your desired fixed height
-              color: const Color.fromRGBO(7, 38, 79, 25),
-              padding: const EdgeInsets.only(bottom: 5),
-              alignment: Alignment.bottomCenter,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.only(right: 20),
-                    child: MouseRegion(
-                      cursor: SystemMouseCursors.click,
-                      onEnter: (event) {
-                        setState(() {
-                          helpIsHovered = true;
-                        });
-                      },
-                      onExit: (event) {
-                        setState(() {
-                          helpIsHovered = false;
-                        });
-                      },
-                      child: Text(
-                        'Help',
-                        style: TextStyle(
-                          color: helpIsHovered ? Colors.white : Colors.grey,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.only(right: 20),
-                    child: MouseRegion(
-                      cursor: SystemMouseCursors.click,
-                      onEnter: (event) {
-                        setState(() {
-                          aboutIsHovered = true;
-                        });
-                      },
-                      onExit: (event) {
-                        setState(() {
-                          aboutIsHovered = false;
-                        });
-                      },
-                      child: Text(
-                        'About',
-                        style: TextStyle(
-                          color: aboutIsHovered ? Colors.white : Colors.grey,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
             ),
           ],
         ),

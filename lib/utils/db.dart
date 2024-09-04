@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:path/path.dart';
 
 late Database? _database;
 
@@ -85,4 +88,28 @@ Future<void> deleteData(int id) async {
 Future<List<Map<String, dynamic>>> getPasswords() async {
   // Get all rows from the table
   return await _database!.query(passwordsTableName);
+}
+
+// Get the database path
+Future<String> getDatabasePath() async {
+  String path = join(await getDatabasesPath(), 'data.db');
+  return path;
+}
+
+Future<void> exportDatabase() async {
+  // Get the path to the database file
+  // String dbPath = await getDatabasePath();
+
+  // Get the directory to save the exported file
+  final appDocumentDir = await getApplicationDocumentsDirectory();
+  final String pathToDatabase = join(appDocumentDir.path, 'data.db');
+  Directory appDocDir = await getApplicationDocumentsDirectory();
+  String exportPath = join(appDocDir.path, 'data1.db');
+
+  // Copy the database file
+  File dbFile = File(pathToDatabase);
+  File exportFile = File(exportPath);
+  await dbFile.copy(exportFile.path);
+
+  print('Database exported to $exportPath');
 }
