@@ -44,4 +44,7 @@ class LanguageEn extends BaseLanguage {
 
   @override
   String get add => 'Add';
+
+  @override
+  String get language => 'Language';
 }

@@ -116,6 +116,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
           color: _selectedRowIndex == item['id'] ? Colors.black12 : null,
           child: ListTile(
             mouseCursor: SystemMouseCursors.click,
+            hoverColor: Colors.white,
             contentPadding: EdgeInsets.all(0),
             // focusColor: Colors.grey,
             selected: _selectedRowIndex == item['id'],
@@ -169,12 +170,18 @@ class _PasswordsPageState extends State<PasswordsPage> {
                             style: TextStyle(fontSize: 12),
                           ))),
                   TableCell(
-                      child: Padding(
-                          padding: EdgeInsets.all(5),
-                          child: TextField(
-                            controller: _titleEditController,
-                            style: TextStyle(fontSize: 12),
-                          ))),
+                      child: TextField(
+                    decoration: InputDecoration(
+                      enabledBorder: enabledUnderLineInputBorder(),
+                      focusedBorder: focusedUnderLineInputBorder(),
+                      isDense: true,
+                      hintText: language!.title,
+                      contentPadding:
+                          const EdgeInsets.only(top: 17, bottom: 14, left: 5),
+                    ),
+                    controller: _titleEditController,
+                    style: const TextStyle(fontSize: 12),
+                  )),
                 ],
               ),
               TableRow(
@@ -185,35 +192,21 @@ class _PasswordsPageState extends State<PasswordsPage> {
                           padding: EdgeInsets.all(5),
                           child: Text(
                             language!.login,
-                            style: TextStyle(fontSize: 12),
+                            style: const TextStyle(fontSize: 12),
                           ))),
                   TableCell(
-                      child: Padding(
-                          padding: const EdgeInsets.all(5),
-                          child: TextField(
-                            decoration: InputDecoration(
-                              hintText: language!.login,
-                              contentPadding: const EdgeInsets.only(top: 10),
-                              suffixIcon: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.copy,
-                                      size: 17,
-                                    ),
-                                    onPressed: () async {
-                                      await Clipboard.setData(ClipboardData(
-                                          text:
-                                              _loginEditController.text ?? ''));
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                            controller: _loginEditController,
-                            style: TextStyle(fontSize: 12),
-                          ))),
+                      child: TextField(
+                    decoration: InputDecoration(
+                      enabledBorder: enabledUnderLineInputBorder(),
+                      focusedBorder: focusedUnderLineInputBorder(),
+                      isDense: true,
+                      hintText: language!.login,
+                      contentPadding: const EdgeInsets.only(top: 15, bottom: 0, left: 5),
+                      suffixIcon: HoverableCopyIconButton(textController: _loginEditController),
+                    ),
+                    controller: _loginEditController,
+                    style: const TextStyle(fontSize: 12),
+                  )),
                 ],
               ),
               TableRow(
@@ -227,15 +220,17 @@ class _PasswordsPageState extends State<PasswordsPage> {
                             style: TextStyle(fontSize: 12),
                           ))),
                   TableCell(
-                      child: Padding(
-                    padding: EdgeInsets.all(5),
                     child: TextFormField(
-                      // style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontSize: 13),
                       controller: _passwordEditController,
                       obscureText: hidePassword ? _isObscure : false,
                       decoration: InputDecoration(
+                        enabledBorder: enabledUnderLineInputBorder(),
+                        focusedBorder: focusedUnderLineInputBorder(),
+                        isDense: true,
                         hintText: language!.password,
-                        contentPadding: EdgeInsets.only(top: 10),
+                        contentPadding:
+                            const EdgeInsets.only(top: 15, bottom: 0, left: 5),
                         suffixIcon: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -245,7 +240,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
                                       _isObscure
                                           ? Icons.visibility
                                           : Icons.visibility_off,
-                                      size: 17,
+                                      size: 15,
                                     ),
                                     onPressed: () {
                                       setState(() {
@@ -261,31 +256,22 @@ class _PasswordsPageState extends State<PasswordsPage> {
                             IconButton(
                               icon: const Icon(
                                 Icons.autorenew,
-                                size: 17,
+                                size: 15,
                               ),
                               onPressed: () {
                                 _passwordEditController.text =
                                     generateNewPassword();
                               },
                             ),
-                            hidePassword
-                                ? IconButton(
-                                    icon: const Icon(
-                                      Icons.copy,
-                                      size: 17,
-                                    ),
-                                    onPressed: () async {
-                                      await Clipboard.setData(ClipboardData(
-                                          text: _passwordEditController.text ??
-                                              ''));
-                                    },
-                                  )
-                                : const SizedBox(),
+                            Padding(
+                                padding: EdgeInsets.only(right: 13),
+                                child: HoverableCopyIconButton(textController: _passwordEditController)
+                            )
                           ],
                         ),
                       ),
                     ),
-                  )),
+                  ),
                 ],
               ),
               TableRow(
@@ -299,31 +285,19 @@ class _PasswordsPageState extends State<PasswordsPage> {
                             style: TextStyle(fontSize: 12),
                           ))),
                   TableCell(
-                      child: Padding(
-                          padding: EdgeInsets.all(5),
-                          child: TextField(
-                            decoration: InputDecoration(
-                              hintText: language!.url,
-                              contentPadding: const EdgeInsets.only(top: 10),
-                              suffixIcon: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.copy,
-                                      size: 17,
-                                    ),
-                                    onPressed: () async {
-                                      await Clipboard.setData(ClipboardData(
-                                          text: _urlEditController.text ?? ''));
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                            controller: _urlEditController,
-                            style: TextStyle(fontSize: 12),
-                          ))),
+                      child: TextField(
+                    decoration: InputDecoration(
+                      enabledBorder: enabledUnderLineInputBorder(),
+                      focusedBorder: focusedUnderLineInputBorder(),
+                      isDense: true,
+                      hintText: language!.url,
+                      contentPadding:
+                          const EdgeInsets.only(top: 16, bottom: 0, left: 5),
+                      suffixIcon: HoverableCopyIconButton(textController: _urlEditController)
+                    ),
+                    controller: _urlEditController,
+                    style: TextStyle(fontSize: 12),
+                  )),
                 ],
               ),
               TableRow(
@@ -337,17 +311,23 @@ class _PasswordsPageState extends State<PasswordsPage> {
                             style: TextStyle(fontSize: 12),
                           ))),
                   TableCell(
-                      child: Padding(
-                          padding: EdgeInsets.all(5),
-                          child: TextField(
-                            controller: _commentEditController,
-                            style: TextStyle(fontSize: 12),
-                          ))),
+                      child: TextField(
+                    decoration: InputDecoration(
+                      enabledBorder: enabledUnderLineInputBorder(),
+                      focusedBorder: focusedUnderLineInputBorder(),
+                      isDense: true,
+                      hintText: language!.comment,
+                      contentPadding:
+                          const EdgeInsets.only(top: 17, bottom: 14, left: 5),
+                    ),
+                    controller: _commentEditController,
+                    style: TextStyle(fontSize: 12),
+                  )),
                 ],
               ),
             ],
           ),
-          SizedBox(
+          const SizedBox(
             height: 20,
           ),
           showSaveButton
@@ -355,12 +335,10 @@ class _PasswordsPageState extends State<PasswordsPage> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     ElevatedButton.icon(
-                      icon: Icon(Icons.save),
+                      icon: const Icon(Icons.save),
                       label: Text(language!.save),
                       style: ElevatedButton.styleFrom(
-                        // primary: Colors.green, // Background color
-                        // onPrimary: Colors.white, // Text and icon color
-                        padding: EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                             horizontal: 12.0, vertical: 12.0), // Padding
                         shape: RoundedRectangleBorder(
                           borderRadius:

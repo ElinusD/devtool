@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:encrypt/encrypt.dart' as cryptoMaker;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:async';
 import 'package:path_provider/path_provider.dart';
 import 'package:random_password_generator/random_password_generator.dart';
@@ -224,6 +225,26 @@ String generateNewPassword() {
 
 //password end
 
+UnderlineInputBorder focusedUnderLineInputBorder() {
+  return const UnderlineInputBorder(
+    borderSide: BorderSide(
+      color: Colors.blueAccent,
+      // Color when the TextField is focused
+      width: 0.9, // Width of the bottom border
+    ),
+  );
+}
+
+UnderlineInputBorder enabledUnderLineInputBorder() {
+  return const UnderlineInputBorder(
+    borderSide: BorderSide(
+      color: Colors.blueAccent,
+      // Color when the TextField is focused
+      width: 0.4, // Width of the bottom border
+    ),
+  );
+}
+
 String capitalize(String s) => s[0].toUpperCase() + s.substring(1);
 
 Future<String> dialogBuilder(
@@ -348,4 +369,48 @@ Future<String?> readSettingsPassFileContents() async {
   }
 
   return null;
+}
+
+//////
+class HoverableCopyIconButton extends StatefulWidget {
+  final TextEditingController textController;
+
+  // Constructor
+  const HoverableCopyIconButton({super.key, required this.textController});
+
+  @override
+  _HoverableCopyIconButtonState createState() => _HoverableCopyIconButtonState();
+}
+
+class _HoverableCopyIconButtonState extends State<HoverableCopyIconButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () async {
+        await Clipboard.setData(ClipboardData(
+            text: widget.textController.text)
+        );
+      },
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click, // Set cursor to pointer on hover
+        onEnter: (_) {
+          setState(() {
+            _isHovered = true;
+          });
+        },
+        onExit: (_) {
+          setState(() {
+            _isHovered = false;
+          });
+        },
+        child: Icon(
+          Icons.copy,
+          size: 15,
+          color: _isHovered ? Colors.black : Colors.grey,
+        ),
+      ),
+    );
+  }
 }

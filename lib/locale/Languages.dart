@@ -19,4 +19,5 @@ abstract class BaseLanguage {
   String get cancel;
   String get confirm;
   String get add;
+  String get language;
 }

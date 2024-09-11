@@ -23,7 +23,7 @@ class AppLocalizations extends LocalizationsDelegate<BaseLanguage> {
           name: 'Українська',
           languageCode: 'uk',
           fullLanguageCode: 'uk-UA',
-          flag: 'assets/flag/ic_ru.png'),
+          flag: 'assets/flag/ic_ua.png'),
     ];
   }
 

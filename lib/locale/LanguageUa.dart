@@ -44,4 +44,7 @@ class LanguageUa extends BaseLanguage {
 
   @override
   String get add => 'Додати';
+
+  @override
+  String get language => 'Мова';
 }

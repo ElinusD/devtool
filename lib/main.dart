@@ -5,6 +5,8 @@ import 'package:devtool/utils/db.dart';
 import 'package:nb_utils/nb_utils.dart';
 import 'package:devtool/store/AppStore.dart';
 import 'package:devtool/pages/passwords.dart';
+import 'package:devtool/pages/docsPage.dart';
+import 'package:devtool/pages/settingsPage.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:window_manager/window_manager.dart';
 import 'pages/includes/footer.dart';
@@ -52,28 +54,39 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
       ),
-      home: MainPage(),
+      home: const MainPage(),
     );
   }
 }
 
 class MainPage extends StatefulWidget {
+  const MainPage({super.key});
+
   @override
   _MainPageState createState() => _MainPageState();
 }
 
 class _MainPageState extends State<MainPage> {
   int _selectedIndex = 0;
+  Widget _selectedPage = const PasswordsPage();
 
-  final List<Widget> _pages = [
-    PasswordsPage(),
-    Page1(),
-    Page2(),
-  ];
+  Widget getWidgetByIndex(int widgetIndex) {
+    switch (widgetIndex) {
+      case 0:
+        return const PasswordsPage();
+      case 1:
+        return DocsPage(redrawMainPage: _onItemTapped);
+      case 2:
+        return SettingsPage(redrawMainPage: _onItemTapped);
+      default:
+        return Container();
+    }
+  }
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
+      _selectedPage = getWidgetByIndex(_selectedIndex);
     });
   }
 
@@ -88,17 +101,24 @@ class _MainPageState extends State<MainPage> {
                 Container(
                   width: 170,
                   color: const Color.fromRGBO(7, 38, 79, 25),
-                  // color: Colors.blueGrey[100],
                   child: Column(
                     children: [
                       Expanded(
                         child: ListView(
                           padding: EdgeInsets.zero,
                           children: [
-                            SizedBox(height: 10,),
-                            Icon(Icons.developer_board, size: 110,),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            Icon(
+                              Icons.developer_board,
+                              size: 110,
+                            ),
                             ListTile(
-                              leading: Icon(Icons.shield, color: Colors.white,),
+                              leading: Icon(
+                                Icons.shield,
+                                color: Colors.white,
+                              ),
                               hoverColor: Colors.grey,
                               selectedColor: Colors.white,
                               selectedTileColor: Color.fromRGBO(7, 38, 79, 60),
@@ -109,7 +129,10 @@ class _MainPageState extends State<MainPage> {
                               onTap: () => _onItemTapped(0),
                             ),
                             ListTile(
-                              leading: Icon(Icons.find_in_page, color: Colors.white,),
+                              leading: Icon(
+                                Icons.find_in_page,
+                                color: Colors.white,
+                              ),
                               title: Text(language!.documents),
                               titleTextStyle: TextStyle(fontSize: 13),
                               hoverColor: Colors.grey,
@@ -120,7 +143,10 @@ class _MainPageState extends State<MainPage> {
                               onTap: () => _onItemTapped(1),
                             ),
                             ListTile(
-                              leading: Icon(Icons.settings, color: Colors.white,),
+                              leading: Icon(
+                                Icons.settings,
+                                color: Colors.white,
+                              ),
                               title: Text(language!.settings),
                               titleTextStyle: TextStyle(fontSize: 13),
                               selectedColor: Colors.white,
@@ -137,46 +163,13 @@ class _MainPageState extends State<MainPage> {
                   ),
                 ),
                 Expanded(
-                  child: _pages[_selectedIndex],
+                  child: _selectedPage,
                 ),
               ],
             ),
           ),
           getFooter(),
         ],
-      ),
-    );
-  }
-}
-
-class Page1 extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Page 1'),
-      ),
-      body: Center(
-        child: Text('Page 1 Content'),
-      ),
-    );
-  }
-}
-
-class Page2 extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Page 2'),
-      ),
-      body: Center(
-          child: ElevatedButton(
-            onPressed: () {
-              exportDatabase();
-            },
-            child: const Text('Export DB'),
-          ),
       ),
     );
   }
