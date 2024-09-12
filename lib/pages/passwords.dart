@@ -306,7 +306,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
                         hintStyle: TextStyle(color: Colors.black26),
                         contentPadding:
                             const EdgeInsets.only(top: 16, bottom: 0, left: 5),
-                        suffixIcon: HoverableCopyIconButton(
+                        suffixIcon: HoverableUrlOpenIconButton(
                             textController: _urlEditController)),
                     controller: _urlEditController,
                     style: TextStyle(fontSize: 12),
