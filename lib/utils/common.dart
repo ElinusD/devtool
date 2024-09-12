@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'dart:async';
 import 'package:path_provider/path_provider.dart';
 import 'package:random_password_generator/random_password_generator.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 String settingsPassFileName = 'wwrSfferfF57567VDrrfVge';
 final password = RandomPasswordGenerator();
@@ -407,6 +408,57 @@ class _HoverableCopyIconButtonState extends State<HoverableCopyIconButton> {
         },
         child: Icon(
           Icons.copy,
+          size: 15,
+          color: _isHovered ? Colors.black : Colors.grey,
+        ),
+      ),
+    );
+  }
+}
+
+//url open icon
+Future<void> _launchURL(String url) async {
+  if (await canLaunchUrlString(url)) {
+    await launchUrlString(url);
+  } else {
+    throw 'Could not launch $url';
+  }
+}
+
+class HoverableUrlOpenIconButton extends StatefulWidget {
+  final TextEditingController textController;
+
+  // Constructor
+  const HoverableUrlOpenIconButton({super.key, required this.textController});
+
+  @override
+  _HoverableUrlOpenIconButtonState createState() => _HoverableUrlOpenIconButtonState();
+}
+
+class _HoverableUrlOpenIconButtonState extends State<HoverableUrlOpenIconButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () async {
+        print(widget.textController.text);
+        _launchURL(widget.textController.text);
+      },
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click, // Set cursor to pointer on hover
+        onEnter: (_) {
+          setState(() {
+            _isHovered = true;
+          });
+        },
+        onExit: (_) {
+          setState(() {
+            _isHovered = false;
+          });
+        },
+        child: Icon(
+          Icons.open_in_browser,
           size: 15,
           color: _isHovered ? Colors.black : Colors.grey,
         ),

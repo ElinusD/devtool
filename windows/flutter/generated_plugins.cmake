@@ -7,6 +7,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   flutter_localization
   nb_utils
   screen_retriever
+  url_launcher_windows
   window_manager
 )
 
