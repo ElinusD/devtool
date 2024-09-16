@@ -5,6 +5,8 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+import 'common.dart';
+
 late Database? _database;
 
 const String passwordsTableName = 'passwords1';
@@ -48,13 +50,12 @@ Future<void> insertData(
   String url,
   String comment,
 ) async {
-  // Insert some data into the table
   await _database!.insert(passwordsTableName, {
-    'title': title,
-    'login': login,
-    'password': password,
-    'url': url,
-    'comment': comment
+    'title':    encryptText(title),
+    'login':    encryptText(login),
+    'password': encryptText(password),
+    'url':      encryptText(url),
+    'comment':  encryptText(comment)
   });
 }
 
@@ -66,26 +67,23 @@ Future<void> updateData(
   String url,
   String comment,
 ) async {
-  // Insert some data into the table
   await _database!.update(
       passwordsTableName,
       {
-        'title': title,
-        'login': login,
-        'password': password,
-        'url': url,
-        'comment': comment
+        'title':    encryptText(title),
+        'login':    encryptText(login),
+        'password': encryptText(password),
+        'url':      encryptText(url),
+        'comment':  encryptText(comment)
       },
       where: 'id=$id');
 }
 
 Future<void> deleteData(int id) async {
-  // Insert some data into the table
   await _database!.delete(passwordsTableName, where: 'id=$id');
 }
 
 Future<List<Map<String, dynamic>>> getPasswords() async {
-  // Get all rows from the table
   return await _database!.query(passwordsTableName);
 }
 
@@ -96,9 +94,6 @@ Future<String> getDatabasePath() async {
 }
 
 Future<void> exportDatabase() async {
-  // Get the path to the database file
-  // String dbPath = await getDatabasePath();
-
   // Get the directory to save the exported file
   final appDocumentDir = await getApplicationDocumentsDirectory();
   final String pathToDatabase = join(appDocumentDir.path, 'data.db');
@@ -109,6 +104,4 @@ Future<void> exportDatabase() async {
   File dbFile = File(pathToDatabase);
   File exportFile = File(exportPath);
   await dbFile.copy(exportFile.path);
-
-  print('Database exported to $exportPath');
 }

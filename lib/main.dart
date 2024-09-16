@@ -107,50 +107,50 @@ class _MainPageState extends State<MainPage> {
                         child: ListView(
                           padding: EdgeInsets.zero,
                           children: [
-                            SizedBox(
+                            const SizedBox(
                               height: 10,
                             ),
-                            Icon(
+                            const Icon(
                               Icons.developer_board,
                               size: 110,
                             ),
                             ListTile(
-                              leading: Icon(
+                              leading: const Icon(
                                 Icons.shield,
                                 color: Colors.white,
                               ),
                               hoverColor: Colors.grey,
                               selectedColor: Colors.white,
-                              selectedTileColor: Color.fromRGBO(7, 38, 79, 60),
+                              selectedTileColor: const Color.fromRGBO(7, 38, 79, 60),
                               title: Text(language!.passwords),
-                              titleTextStyle: TextStyle(fontSize: 13),
+                              titleTextStyle: const TextStyle(fontSize: 13),
                               textColor: Colors.grey,
                               selected: _selectedIndex == 0,
                               onTap: () => _onItemTapped(0),
                             ),
                             ListTile(
-                              leading: Icon(
+                              leading: const Icon(
                                 Icons.find_in_page,
                                 color: Colors.white,
                               ),
                               title: Text(language!.documents),
-                              titleTextStyle: TextStyle(fontSize: 13),
+                              titleTextStyle: const TextStyle(fontSize: 13),
                               hoverColor: Colors.grey,
                               selectedColor: Colors.white,
-                              selectedTileColor: Color.fromRGBO(7, 38, 79, 60),
+                              selectedTileColor: const Color.fromRGBO(7, 38, 79, 60),
                               textColor: Colors.grey,
                               selected: _selectedIndex == 1,
                               onTap: () => _onItemTapped(1),
                             ),
                             ListTile(
-                              leading: Icon(
+                              leading: const Icon(
                                 Icons.settings,
                                 color: Colors.white,
                               ),
                               title: Text(language!.settings),
-                              titleTextStyle: TextStyle(fontSize: 13),
+                              titleTextStyle: const TextStyle(fontSize: 13),
                               selectedColor: Colors.white,
-                              selectedTileColor: Color.fromRGBO(7, 38, 79, 60),
+                              selectedTileColor: const Color.fromRGBO(7, 38, 79, 60),
                               hoverColor: Colors.grey,
                               textColor: Colors.grey,
                               selected: _selectedIndex == 2,

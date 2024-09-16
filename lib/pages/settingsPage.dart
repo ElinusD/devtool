@@ -1,4 +1,3 @@
-import 'package:devtool/utils/common.dart';
 import 'package:devtool/main.dart';
 import 'package:flutter/material.dart';
 import 'package:nb_utils/nb_utils.dart';
@@ -26,7 +25,7 @@ class _SettingsPageState extends State<SettingsPage> {
           Row(
             children: [
               Text(language!.language),
-              SizedBox(
+              const SizedBox(
                 width: 10,
               ),
               LanguageListWidget(
@@ -41,7 +40,7 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           TextButton(
             onPressed: () {
-              print('object');
+              // print('object');
             },
             child: Text(language!.cancel),
           ),

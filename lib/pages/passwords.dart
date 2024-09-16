@@ -1,10 +1,8 @@
 import 'dart:async';
 
 import 'package:devtool/main.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:devtool/utils/db.dart';
-import 'package:flutter/services.dart';
 import '../utils/common.dart';
 
 class PasswordsPage extends StatefulWidget {
@@ -21,7 +19,6 @@ class _PasswordsPageState extends State<PasswordsPage> {
   bool _isObscure = true;
 
   Widget? itemWidgetData;
-  int? _selectedRowIndex;
   List<Widget> _itemsList = [];
   final TextEditingController _searchEditController = TextEditingController();
   final TextEditingController _titleEditController = TextEditingController();
@@ -35,10 +32,9 @@ class _PasswordsPageState extends State<PasswordsPage> {
   void _onRowTap(Map<String, dynamic> item) {
     setState(() {
       _isObscure = true;
-      _selectedRowIndex = item['id'];
       itemWidgetData = itemWidget(item);
       itemWidgetVisible = true;
-      _loadPasswordsList();
+      _loadPasswordsList(item['id']);
     });
   }
 
@@ -46,65 +42,19 @@ class _PasswordsPageState extends State<PasswordsPage> {
   void initState() {
     super.initState();
 
-    _loadPasswordsList();
+    _loadPasswordsList(0);
   }
 
-  Future<void> _loadPasswordsList({bool addNew = false}) async {
+  Future<void> _loadPasswordsList(int selectedId, {bool addNew = false}) async {
     await initDatabase();
     passwordsFromDB = await getPasswords();
 
     setState(() {
-      _itemsList = generatePasswordsList();
+      _itemsList = generatePasswordsList(selectedId);
     });
   }
 
-  List<Widget> _generateCells(item) {
-    List<String> listOfColumns = ['title', 'login', 'password', 'url'];
-    List<Widget> listOfCells = [];
-    Color color = Colors.white;
-    String passStrength;
-
-    for (int i = 0; i < listOfColumns.length; i++) {
-      Widget cellValue;
-
-      if (listOfColumns[i] == 'password') {
-        (passStrength, color) = passwordStrength(item[listOfColumns[i]]);
-        cellValue = Align(
-          alignment: Alignment.centerLeft,
-          child: Row(
-            children: [
-              Icon(
-                Icons.shield,
-                color: color,
-              ),
-              Text(
-                passStrength,
-                style: const TextStyle(fontSize: 13),
-              ),
-            ],
-          ),
-        );
-      } else {
-        cellValue = Text(
-          item[listOfColumns[i]] == '' ? '--' : item[listOfColumns[i]],
-          style: const TextStyle(fontSize: 13),
-        );
-      }
-
-      listOfCells.add(
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-            child: cellValue,
-          ),
-        ),
-      );
-    }
-
-    return listOfCells;
-  }
-
-  List<Widget> generatePasswordsList() {
+  List<Widget> generatePasswordsList(int selectedId) {
     List<Widget> listRows = [];
 
     for (var item in passwordsFromDB) {
@@ -112,27 +62,11 @@ class _PasswordsPageState extends State<PasswordsPage> {
           item['title']
               .toLowerCase()
               .contains(_searchEditController.text.toLowerCase())) {
-        listRows.add(
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(7),
-              color: _selectedRowIndex == item['id'] ? Colors.black12 : null,
-            ),
-            child: ListTile(
-              mouseCursor: SystemMouseCursors.click,
-              hoverColor: Colors.white,
-              contentPadding: EdgeInsets.all(0),
-              // focusColor: Colors.grey,
-              selected: _selectedRowIndex == item['id'],
-              onTap: () {
-                _onRowTap(item);
-              },
-              title: Row(
-                children: _generateCells(item),
-              ),
-            ),
-          ),
-        );
+        listRows.add(HoverablePasswordItem(
+                item: item,
+                selectItemOnHomePage: _onRowTap,
+                selectedOnHomePage: selectedId)
+            );
       }
     }
 
@@ -141,11 +75,11 @@ class _PasswordsPageState extends State<PasswordsPage> {
 
   Widget itemWidget(Map<String, dynamic> item,
       {bool showSaveButton = true, bool hidePassword = true}) {
-    _titleEditController.text = item['title'] ?? '';
-    _loginEditController.text = item['login'] ?? '';
-    _passwordEditController.text = item['password'] ?? '';
-    _urlEditController.text = item['url'] ?? '';
-    _commentEditController.text = item['comment'] ?? '';
+    _titleEditController.text = decryptText(item['title']) ?? '';
+    _loginEditController.text = decryptText(item['login']) ?? '';
+    _passwordEditController.text = decryptText(item['password']) ?? '';
+    _urlEditController.text = decryptText(item['url']) ?? '';
+    _commentEditController.text = decryptText(item['comment']) ?? '';
 
     return Container(
       width: 390,
@@ -271,7 +205,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
                               },
                             ),
                             Padding(
-                                padding: EdgeInsets.only(right: 12),
+                                padding: const EdgeInsets.only(right: 12),
                                 child: HoverableCopyIconButton(
                                     textController: _passwordEditController))
                           ],
@@ -305,7 +239,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
                             Row(mainAxisSize: MainAxisSize.min, children: [
                           HoverableUrlOpenIconButton(
                               textController: _urlEditController),
-                          SizedBox(
+                          const SizedBox(
                             width: 10,
                           ),
                           Padding(
@@ -336,12 +270,12 @@ class _PasswordsPageState extends State<PasswordsPage> {
                       focusedBorder: focusedUnderLineInputBorder(),
                       isDense: true,
                       hintText: language!.comment,
-                      hintStyle: TextStyle(color: Colors.black26),
+                      hintStyle: const TextStyle(color: Colors.black26),
                       contentPadding:
                           const EdgeInsets.only(top: 17, bottom: 14, left: 5),
                     ),
                     controller: _commentEditController,
-                    style: TextStyle(fontSize: 12),
+                    style: const TextStyle(fontSize: 12),
                   )),
                 ],
               ),
@@ -376,11 +310,11 @@ class _PasswordsPageState extends State<PasswordsPage> {
                               _passwordEditController.text,
                               _urlEditController.text,
                               _commentEditController.text);
-                          _loadPasswordsList();
+                          _loadPasswordsList(item['id']);
                         }
                       },
                     ),
-                    SizedBox(
+                    const SizedBox(
                       width: 10,
                     ),
                     ElevatedButton.icon(
@@ -389,7 +323,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
                       style: ElevatedButton.styleFrom(
                         // primary: Colors.green, // Background color
                         // onPrimary: Colors.white, // Text and icon color
-                        padding: EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                             horizontal: 12.0, vertical: 12.0), // Padding
                         shape: RoundedRectangleBorder(
                           borderRadius:
@@ -402,7 +336,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
                     ),
                   ],
                 )
-              : SizedBox(),
+              : const SizedBox(),
         ],
       ),
     );
@@ -450,7 +384,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
                 onPressed: () {
                   setState(() {
                     _searchEditController.text = '';
-                    _itemsList = generatePasswordsList();
+                    _itemsList = generatePasswordsList(0);
                   });
                 },
               ),
@@ -477,7 +411,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
             ),
             onChanged: (input) {
               setState(() {
-                _itemsList = generatePasswordsList();
+                _itemsList = generatePasswordsList(0);
               });
             },
           ),
@@ -505,7 +439,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
               child: Row(children: [
                 Expanded(
                   child: Container(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.only(left: 14, right: 14),
                     margin: const EdgeInsets.fromLTRB(10, 0, 12, 0),
                     decoration: const BoxDecoration(
                       borderRadius: BorderRadius.only(
@@ -514,27 +448,37 @@ class _PasswordsPageState extends State<PasswordsPage> {
                       color: Colors.white,
                     ),
                     child: Column(children: [
-                      ListTile(
-                        title: Row(
-                          children: [
-                            Expanded(
-                                child: Container(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text(language!.title, style: TextStyle(fontSize: 14),))),
-                            Expanded(
-                                child: Container(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text(language!.login, style: TextStyle(fontSize: 14),))),
-                            Expanded(
-                                child: Container(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text(language!.passwordStrength, style: TextStyle(fontSize: 14),))),
-                            Expanded(
-                                child: Container(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text(language!.url, style: TextStyle(fontSize: 14),))),
-                          ],
-                        ),
+                      Row(
+                        children: [
+                          Expanded(
+                              child: Container(
+                                  padding: const EdgeInsets.all(10),
+                                  child: Text(
+                                    language!.title,
+                                    style: TextStyle(fontSize: 14),
+                                  ))),
+                          Expanded(
+                              child: Container(
+                                  padding: const EdgeInsets.all(10),
+                                  child: Text(
+                                    language!.login,
+                                    style: TextStyle(fontSize: 14),
+                                  ))),
+                          Expanded(
+                              child: Container(
+                                  padding: const EdgeInsets.all(10),
+                                  child: Text(
+                                    language!.passwordStrength,
+                                    style: TextStyle(fontSize: 14),
+                                  ))),
+                          Expanded(
+                              child: Container(
+                                  padding: const EdgeInsets.all(10),
+                                  child: Text(
+                                    language!.url,
+                                    style: TextStyle(fontSize: 14),
+                                  ))),
+                        ],
                       ),
                       Expanded(
                         child: SingleChildScrollView(
@@ -610,7 +554,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
     );
 
     setState(() {
-      _loadPasswordsList();
+      _loadPasswordsList(0);
     });
   }
 
@@ -643,7 +587,128 @@ class _PasswordsPageState extends State<PasswordsPage> {
       // User pressed "Confirm", proceed with the action
       await deleteData(itemId);
       itemWidgetVisible = false;
-      _loadPasswordsList();
+      _loadPasswordsList(0);
     }
+  }
+}
+
+class HoverablePasswordItem extends StatefulWidget {
+  final Function(Map<String, dynamic>) selectItemOnHomePage;
+  final Map<String, dynamic> item;
+  final int selectedOnHomePage;
+
+  // Constructor
+  const HoverablePasswordItem(
+      {super.key,
+      required this.item,
+      required this.selectItemOnHomePage,
+      required this.selectedOnHomePage});
+
+  @override
+  _HoverablePasswordItemState createState() => _HoverablePasswordItemState();
+}
+
+class _HoverablePasswordItemState extends State<HoverablePasswordItem> {
+  bool _isHovered = false;
+  bool _isSelected = false;
+
+  List<Widget> _generateCells(item) {
+    List<String> listOfColumns = ['title', 'login', 'password', 'url'];
+    List<Widget> listOfCells = [];
+    Color color = Colors.white;
+    String passStrength;
+
+    for (int i = 0; i < listOfColumns.length; i++) {
+      Widget cellValue;
+
+      if (listOfColumns[i] == 'password') {
+        (passStrength, color) =
+            passwordStrength(decryptText(item[listOfColumns[i]]));
+        cellValue = Row(
+          children: [
+            Icon(
+              Icons.shield,
+              color: color,
+            ),
+            Text(
+              passStrength,
+              style: const TextStyle(fontSize: 13),
+            ),
+          ],
+        );
+      } else {
+        cellValue = Text(
+          item[listOfColumns[i]] == ''
+              ? '--'
+              : decryptText(item[listOfColumns[i]]),
+          style: const TextStyle(fontSize: 13),
+        );
+      }
+
+      listOfCells.add(
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+            child: cellValue,
+          ),
+        ),
+      );
+    }
+
+    return listOfCells;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Color itemColor;
+    _isSelected = widget.selectedOnHomePage == widget.item['id'];
+
+    if (_isSelected) {
+      itemColor = Colors.grey.shade200;
+    } else if (_isHovered) {
+      itemColor = Colors.black12;
+    } else {
+      itemColor = Colors.transparent;
+    }
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _isHovered = false;
+          _isSelected = true;
+        });
+        widget.selectItemOnHomePage(widget.item);
+      },
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) {
+          setState(() {
+            if (!_isSelected) {
+              _isHovered = true;
+            }
+          });
+        },
+        onExit: (_) {
+          setState(() {
+            _isHovered = false;
+          });
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(13),
+            color: itemColor,
+          ),
+          child: ListTile(
+            mouseCursor: SystemMouseCursors.click,
+            hoverColor: Colors.white,
+            contentPadding: const EdgeInsets.all(0),
+            selected: _isSelected,
+            title: Row(
+              children: _generateCells(widget.item),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
