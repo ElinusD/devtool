@@ -40,6 +40,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       localizationsDelegates: const [
         AppLocalizations(),
         GlobalMaterialLocalizations.delegate,
@@ -168,7 +169,7 @@ class _MainPageState extends State<MainPage> {
               ],
             ),
           ),
-          getFooter(),
+          const Footer(),
         ],
       ),
     );

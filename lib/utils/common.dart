@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:convert';
+import 'package:devtool/main.dart';
 import 'package:encrypt/encrypt.dart' as cryptoMaker;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -67,7 +68,7 @@ Future<void> errorMessage(BuildContext context, String message) async {
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        title: const Text('Error'),
+        title: Text(language!.error),
         content: Text(message),
         actions: [
           TextButton(
@@ -184,10 +185,8 @@ class _HoverableCopyIconButtonState extends State<HoverableCopyIconButton> {
 
 //url open icon
 Future<void> _launchURL(String url) async {
-  if (await canLaunchUrlString(url)) {
+  if (url != '' && await canLaunchUrlString(url)) {
     await launchUrlString(url);
-  } else {
-    throw 'Could not launch $url';
   }
 }
 
@@ -208,7 +207,6 @@ class _HoverableUrlOpenIconButtonState extends State<HoverableUrlOpenIconButton>
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () async {
-        print(widget.textController.text);
         _launchURL(widget.textController.text);
       },
       child: MouseRegion(

@@ -4,6 +4,10 @@ abstract class BaseLanguage {
   static BaseLanguage of(BuildContext context) =>
       Localizations.of<BaseLanguage>(context, BaseLanguage)!;
 
+  String get help;
+  String get helpText;
+  String get about;
+  String get aboutText;
   String get password;
   String get passwordStrength;
   String get passwords;
@@ -20,4 +24,12 @@ abstract class BaseLanguage {
   String get confirm;
   String get add;
   String get language;
+  String get database;
+  String get deleteDatabase;
+  String get error;
+  String get titleIsEmpty;
+  String get date;
+  String get changed;
+  String get passwordStrengthRecommendations;
+  String get passwordStrengthRecommendationsText;
 }

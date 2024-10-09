@@ -17,6 +17,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
   bool aboutIsHovered = false;
   bool itemWidgetVisible = false;
   bool _isObscure = true;
+  bool _isHoveredCloseBtn = false;
 
   Widget? itemWidgetData;
   List<Widget> _itemsList = [];
@@ -59,14 +60,13 @@ class _PasswordsPageState extends State<PasswordsPage> {
 
     for (var item in passwordsFromDB) {
       if (_searchEditController.text == '' ||
-          item['title']
+          decryptText(item['title'])
               .toLowerCase()
               .contains(_searchEditController.text.toLowerCase())) {
         listRows.add(HoverablePasswordItem(
-                item: item,
-                selectItemOnHomePage: _onRowTap,
-                selectedOnHomePage: selectedId)
-            );
+            item: item,
+            selectItemOnHomePage: _onRowTap,
+            selectedOnHomePage: selectedId));
       }
     }
 
@@ -80,6 +80,12 @@ class _PasswordsPageState extends State<PasswordsPage> {
     _passwordEditController.text = decryptText(item['password']) ?? '';
     _urlEditController.text = decryptText(item['url']) ?? '';
     _commentEditController.text = decryptText(item['comment']) ?? '';
+    String changed = '';
+    if (item['changed'] != null) {
+      final changedValue = DateTime.fromMillisecondsSinceEpoch(item['changed']);
+      changed = changedValue.toString();
+      changed = changed.substring(0, 19);
+    }
 
     return Container(
       width: 390,
@@ -93,6 +99,39 @@ class _PasswordsPageState extends State<PasswordsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Row(
+
+            children: [
+              const Spacer(),
+              Text(_titleEditController.text),
+              const Spacer(),
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    itemWidgetVisible = !itemWidgetVisible;
+                  });
+                },
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.click, // Set cursor to pointer on hover
+                  onEnter: (_) {
+                    setState(() {
+                      _isHoveredCloseBtn = true;
+                    });
+                  },
+                  onExit: (_) {
+                    setState(() {
+                      _isHoveredCloseBtn = false;
+                    });
+                  },
+                  child: Icon(
+                    Icons.close,
+                    size: 15,
+                    color: _isHoveredCloseBtn ? Colors.black : Colors.grey,
+                  ),
+                ),
+              )
+            ],
+          ),
           Table(
             columnWidths: const {
               0: FixedColumnWidth(90),
@@ -279,6 +318,24 @@ class _PasswordsPageState extends State<PasswordsPage> {
                   )),
                 ],
               ),
+              TableRow(
+                children: [
+                  TableCell(
+                      verticalAlignment: TableCellVerticalAlignment.middle,
+                      child: Padding(
+                          padding: const EdgeInsets.only(top: 10, left: 5),
+                          child: Text(
+                            language!.changed,
+                            style: const TextStyle(fontSize: 12, color: Colors.black38),
+                          ))),
+                  TableCell(
+                      child: Padding(
+                          padding: const EdgeInsets.only(top: 10, left: 5),
+                          child: Text(changed,
+                    style: const TextStyle(fontSize: 12, color: Colors.black38),
+                  )),)
+                ],
+              ),
             ],
           ),
           const SizedBox(
@@ -301,7 +358,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
                       ),
                       onPressed: () async {
                         if (_titleEditController.text == '') {
-                          errorMessage(context, 'Title is empty');
+                          errorMessage(context, language!.titleIsEmpty);
                         } else {
                           await updateData(
                               item['id'],
@@ -348,28 +405,9 @@ class _PasswordsPageState extends State<PasswordsPage> {
         const SizedBox(
           width: 10,
         ),
-        ElevatedButton.icon(
-          icon: const Icon(Icons.add),
-          onPressed: () {
-            setState(() {
-              itemWidgetData = null;
-              itemWidgetVisible = false;
-            });
-            _openModalAddItem(context);
-          },
-          label: Text(language!.add),
-          style: ElevatedButton.styleFrom(
-            iconColor: Colors.white,
-            foregroundColor: Colors.white,
-            backgroundColor: Colors.green,
-          ),
-        ),
-        // Icon on the left side
-        const Spacer(),
-        // Spacer to push the TextField to the center
         SizedBox(
           width: 300.0, // Fixed width of TextField
-          height: 30,
+          height: 34,
           child: TextField(
             controller: _searchEditController,
             textAlign: TextAlign.center,
@@ -414,6 +452,31 @@ class _PasswordsPageState extends State<PasswordsPage> {
                 _itemsList = generatePasswordsList(0);
               });
             },
+          ),
+        ),
+        const SizedBox(
+          width: 10,
+        ),
+        ElevatedButton.icon(
+          icon: const Icon(
+            Icons.add,
+            size: 13,
+          ),
+          onPressed: () {
+            setState(() {
+              itemWidgetData = null;
+              itemWidgetVisible = false;
+            });
+            _openModalAddItem(context);
+          },
+          label: Text(
+            language!.add,
+            style: const TextStyle(fontSize: 12),
+          ),
+          style: ElevatedButton.styleFrom(
+            iconColor: Colors.white,
+            foregroundColor: Colors.white,
+            backgroundColor: Colors.green,
           ),
         ),
         const Spacer(),
@@ -493,8 +556,28 @@ class _PasswordsPageState extends State<PasswordsPage> {
                 ),
                 Visibility(
                   visible: itemWidgetVisible,
-                  child: itemWidgetData ?? SizedBox.shrink(),
-                )
+                  child: itemWidgetData ?? const SizedBox.shrink(),
+                ),
+                Visibility(
+                  visible: !itemWidgetVisible,
+                  child: Container(
+                      width: 390,
+                      padding: const EdgeInsets.all(16.0),
+                      margin: const EdgeInsets.fromLTRB(0, 0, 12, 0),
+                      decoration: const BoxDecoration(
+                        borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(13), topRight: Radius.circular(13)),
+                        color: Colors.white,
+                      ),
+                      child: Column(
+                        children: [
+                          Text(language!.passwordStrengthRecommendations, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),),
+                          Expanded(child: Text(language!.passwordStrengthRecommendationsText, style: const TextStyle(fontSize: 12),))
+                        ],
+                      ),
+                  )
+                ),
+
               ]),
             ),
           ],
@@ -535,7 +618,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
             TextButton(
               onPressed: () {
                 if (_titleEditController.text == '') {
-                  errorMessage(context, 'Title is empty');
+                  errorMessage(context, language!.titleIsEmpty);
                 } else {
                   insertData(
                       _titleEditController.text,

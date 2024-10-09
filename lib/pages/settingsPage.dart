@@ -1,4 +1,5 @@
 import 'package:devtool/main.dart';
+import 'package:devtool/utils/db.dart';
 import 'package:flutter/material.dart';
 import 'package:nb_utils/nb_utils.dart';
 
@@ -40,9 +41,9 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           TextButton(
             onPressed: () {
-              // print('object');
+              deleteDB();
             },
-            child: Text(language!.cancel),
+            child: Text(language!.deleteDatabase),
           ),
         ]));
   }
