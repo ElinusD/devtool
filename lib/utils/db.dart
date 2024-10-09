@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -9,6 +8,8 @@ import 'common.dart';
 
 late Database? _database;
 
+const String databaseName = 'data.db';
+const String databaseExportName = 'dataExport.db';
 const String passwordsTableName = 'passwords1';
 
 const String passwordsTableIntiQuery =
@@ -17,32 +18,55 @@ const String passwordsTableIntiQuery =
     "login TEXT,"
     "password TEXT,"
     "url TEXT,"
-    "comment TEXT"
+    "comment TEXT,"
+    "changed INTEGER"
     ")";
 
+//DB commands
 Future<void> initDBConnection() async {
-  // Initialize the sqflite ffi library for desktop platforms
   sqfliteFfiInit();
-  // Set the databaseFactory to use sqflite ffi
   databaseFactory = databaseFactoryFfi;
 }
 
 Future<void> initDatabase() async {
-  // Get the directory for the app's documents
-  final appDocumentDir = await getApplicationDocumentsDirectory();
-  final String pathToDatabase = join(appDocumentDir.path, 'data.db');
+  final String pathToDatabase = await getDBPath();
 
-  // Open/create the database at the specified path
   _database = await openDatabase(pathToDatabase, version: 1,
       onCreate: (Database db, int version) async {
-    // Create the table
     await db.execute(passwordsTableIntiQuery);
   }, onOpen: (Database db) async {
-    // Create the table
     await db.execute(passwordsTableIntiQuery);
   });
 }
 
+Future<String> getDBPath() async {
+  final appDocumentDir = await getApplicationDocumentsDirectory();
+
+  return join(appDocumentDir.path, databaseName);
+}
+
+Future<void> deleteDB() async {
+  try {
+    final String pathToDatabase = await getDBPath();
+    await deleteDatabase(pathToDatabase);
+    print('Database deleted successfully.');
+  } catch (e) {
+    print('Error deleting database: $e');
+  }
+}
+
+Future<void> exportDatabase() async {
+  final String pathToDatabase = await getDBPath();
+  Directory appDocDir = await getApplicationDocumentsDirectory();
+  String exportPath = join(appDocDir.path, databaseExportName);
+
+  // Copy the database file
+  File dbFile = File(pathToDatabase);
+  File exportFile = File(exportPath);
+  await dbFile.copy(exportFile.path);
+}
+
+// CRUD
 Future<void> insertData(
   String title,
   String login,
@@ -55,7 +79,8 @@ Future<void> insertData(
     'login':    encryptText(login),
     'password': encryptText(password),
     'url':      encryptText(url),
-    'comment':  encryptText(comment)
+    'comment':  encryptText(comment),
+    'changed':  DateTime.now().millisecondsSinceEpoch
   });
 }
 
@@ -74,7 +99,8 @@ Future<void> updateData(
         'login':    encryptText(login),
         'password': encryptText(password),
         'url':      encryptText(url),
-        'comment':  encryptText(comment)
+        'comment':  encryptText(comment),
+        'changed':  DateTime.now().millisecondsSinceEpoch
       },
       where: 'id=$id');
 }
@@ -85,23 +111,4 @@ Future<void> deleteData(int id) async {
 
 Future<List<Map<String, dynamic>>> getPasswords() async {
   return await _database!.query(passwordsTableName);
-}
-
-// Get the database path
-Future<String> getDatabasePath() async {
-  String path = join(await getDatabasesPath(), 'data.db');
-  return path;
-}
-
-Future<void> exportDatabase() async {
-  // Get the directory to save the exported file
-  final appDocumentDir = await getApplicationDocumentsDirectory();
-  final String pathToDatabase = join(appDocumentDir.path, 'data.db');
-  Directory appDocDir = await getApplicationDocumentsDirectory();
-  String exportPath = join(appDocDir.path, 'data1.db');
-
-  // Copy the database file
-  File dbFile = File(pathToDatabase);
-  File exportFile = File(exportPath);
-  await dbFile.copy(exportFile.path);
 }
