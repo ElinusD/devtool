@@ -185,6 +185,7 @@ class _HoverableCopyIconButtonState extends State<HoverableCopyIconButton> {
 
 //url open icon
 Future<void> _launchURL(String url) async {
+  url = 'http://${url.replaceAll('http://', '').trim()}';
   if (url != '' && await canLaunchUrlString(url)) {
     await launchUrlString(url);
   }
