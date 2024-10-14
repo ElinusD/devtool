@@ -26,10 +26,9 @@ void main() async {
   const AppLocalizations().initLocale();
 
   await windowManager.ensureInitialized();
-  if (Platform.isWindows) {
-    WindowManager.instance.setSize(const Size(1300, 700));
-    WindowManager.instance.setMinimumSize(const Size(1200, 700));
-  }
+
+  WindowManager.instance.setSize(const Size(1300, 700));
+  WindowManager.instance.setMinimumSize(const Size(1200, 700));
 
   runApp(const MyApp());
 }
@@ -100,7 +99,7 @@ class _MainPageState extends State<MainPage> {
             child: Row(
               children: [
                 Container(
-                  width: 170,
+                  width: 150,
                   color: const Color.fromRGBO(7, 38, 79, 25),
                   child: Column(
                     children: [

@@ -88,7 +88,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
     }
 
     return Container(
-      width: 390,
+      width: 340,
       padding: const EdgeInsets.all(16.0),
       margin: const EdgeInsets.fromLTRB(0, 0, 12, 0),
       decoration: const BoxDecoration(
@@ -100,7 +100,6 @@ class _PasswordsPageState extends State<PasswordsPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-
             children: [
               const Spacer(),
               Text(_titleEditController.text),
@@ -145,7 +144,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
                           padding: EdgeInsets.all(5),
                           child: Text(
                             language!.title,
-                            style: TextStyle(fontSize: 12),
+                            style: const TextStyle(fontSize: 12),
                           ))),
                   TableCell(
                       child: TextField(
@@ -518,28 +517,28 @@ class _PasswordsPageState extends State<PasswordsPage> {
                                   padding: const EdgeInsets.all(10),
                                   child: Text(
                                     language!.title,
-                                    style: TextStyle(fontSize: 14),
+                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                                   ))),
                           Expanded(
                               child: Container(
                                   padding: const EdgeInsets.all(10),
                                   child: Text(
                                     language!.login,
-                                    style: TextStyle(fontSize: 14),
+                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                                   ))),
                           Expanded(
                               child: Container(
                                   padding: const EdgeInsets.all(10),
                                   child: Text(
                                     language!.passwordStrength,
-                                    style: TextStyle(fontSize: 14),
+                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                                   ))),
                           Expanded(
                               child: Container(
                                   padding: const EdgeInsets.all(10),
                                   child: Text(
                                     language!.url,
-                                    style: TextStyle(fontSize: 14),
+                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                                   ))),
                         ],
                       ),
@@ -561,7 +560,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
                 Visibility(
                   visible: !itemWidgetVisible,
                   child: Container(
-                      width: 390,
+                      width: 340,
                       padding: const EdgeInsets.all(16.0),
                       margin: const EdgeInsets.fromLTRB(0, 0, 12, 0),
                       decoration: const BoxDecoration(
@@ -720,10 +719,12 @@ class _HoverablePasswordItemState extends State<HoverablePasswordItem> {
           ],
         );
       } else {
+        var text = item[listOfColumns[i]] == '' ? '--' : decryptText(item[listOfColumns[i]]);
+        if (text.length > 17) {
+          text = '${text.substring(0,17)}...';
+        }
         cellValue = Text(
-          item[listOfColumns[i]] == ''
-              ? '--'
-              : decryptText(item[listOfColumns[i]]),
+          text,
           style: const TextStyle(fontSize: 13),
         );
       }
