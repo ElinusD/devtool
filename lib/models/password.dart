@@ -30,14 +30,14 @@ class Password {
   }
 
   // Method to convert a Product to JSON
-  Map<String, dynamic> convertToEncryptJson() {
+  Future<Map<String, dynamic>> convertToEncryptJson() async {
     return {
       'id': id,
-      'title': encryptText(title!),
-      'login': encryptText(login!),
-      'password': encryptText(password!),
-      'url': encryptText(url!),
-      'comment': encryptText(comment!),
+      'title': await encryptText(title!),
+      'login': await encryptText(login!),
+      'password': await encryptText(password!),
+      'url': await encryptText(url!),
+      'comment': await encryptText(comment!),
     };
   }
 

@@ -79,7 +79,7 @@ class _FooterState extends State<Footer> {
                     child: GestureDetector(
                       onTap: () {
                         _showAlertDialog(
-                            context, language!.help, language!.helpText);
+                            context, language.help, language.helpText);
                       },
                       child: MouseRegion(
                         cursor: SystemMouseCursors.click,
@@ -94,7 +94,7 @@ class _FooterState extends State<Footer> {
                           });
                         },
                         child: Text(
-                          language!.help,
+                          language.help,
                           style: TextStyle(
                             color: _isHelpHovered ? Colors.white : Colors.grey,
                           ),
@@ -106,7 +106,7 @@ class _FooterState extends State<Footer> {
                     child: GestureDetector(
                       onTap: () {
                         _showAlertDialog(
-                            context, language!.about, language!.aboutText);
+                            context, language.about, language.aboutText);
                       },
                       child: MouseRegion(
                         cursor: SystemMouseCursors.click,
@@ -121,7 +121,7 @@ class _FooterState extends State<Footer> {
                           });
                         },
                         child: Text(
-                          language!.about,
+                          language.about,
                           style: TextStyle(
                             color: _isAboutHovered ? Colors.white : Colors.grey,
                           ),

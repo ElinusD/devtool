@@ -23,7 +23,7 @@ class _DocsPageState extends State<DocsPage> {
     return Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(language!.documents),
+          Text(language.documents),
         ]));
   }
 }

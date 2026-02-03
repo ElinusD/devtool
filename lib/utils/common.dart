@@ -7,19 +7,51 @@ import 'package:flutter/services.dart';
 import 'dart:async';
 import 'package:random_password_generator/random_password_generator.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'db.dart';
+
+// Initialize crypto string cache
+Future<void> initCryptoString() async {
+  await _refreshCryptoString();
+}
 
 final password = RandomPasswordGenerator();
 
-const cryptoString = "78915030";
-const String iv    = 'your_secret_iv44'; //16
-String str         = cryptoString.padRight(15, cryptoString);
-final cryptoKey    = str.substring(0, 32);
+const String iv = 'your_secret_iv44'; //16
 
+// Cached crypto string for synchronous operations
+String? _cachedCryptoString;
 
-String decryptText(String encryptedText) {
+Future<String> _getCryptoString() async {
+  if (_cachedCryptoString != null) {
+    return _cachedCryptoString!;
+  }
+  await initDatabase();
+  _cachedCryptoString = await getSetting('crypto_string') ?? '78915030';
+  return _cachedCryptoString!;
+}
+
+Future<void> _refreshCryptoString() async {
+  await initDatabase();
+  _cachedCryptoString = await getSetting('crypto_string') ?? '78915030';
+}
+
+// Public function to refresh crypto string cache
+Future<void> refreshCryptoStringCache() async {
+  await _refreshCryptoString();
+}
+
+String _getCryptoKey(String cryptoString) {
+  String str = cryptoString.padRight(15, cryptoString);
+  return str.substring(0, 32);
+}
+
+Future<String> decryptText(String encryptedText) async {
   if (encryptedText == '') {
     return '';
   }
+  final cryptoString = await _getCryptoString();
+  final cryptoKey = _getCryptoKey(cryptoString);
+  
   final encrypter = cryptoMaker.Encrypter(
     cryptoMaker.AES(cryptoMaker.Key.fromUtf8(cryptoKey),
         mode: cryptoMaker.AESMode.cbc),
@@ -31,10 +63,48 @@ String decryptText(String encryptedText) {
   return decrypted;
 }
 
-String encryptText(String text) {
+Future<String> encryptText(String text) async {
   if (text == '') {
     return '';
   }
+  final cryptoString = await _getCryptoString();
+  final cryptoKey = _getCryptoKey(cryptoString);
+  
+  final encrypter = cryptoMaker.Encrypter(
+    cryptoMaker.AES(cryptoMaker.Key.fromUtf8(cryptoKey),
+        mode: cryptoMaker.AESMode.cbc),
+  );
+
+  final encrypted = encrypter.encrypt(text, iv: cryptoMaker.IV.fromUtf8(iv));
+  return encrypted.base64;
+}
+
+// Synchronous versions for backward compatibility
+String decryptTextSync(String encryptedText, {String? cryptoString}) {
+  if (encryptedText == '') {
+    return '';
+  }
+  final cs = cryptoString ?? _cachedCryptoString ?? '78915030';
+  final cryptoKey = _getCryptoKey(cs);
+  
+  final encrypter = cryptoMaker.Encrypter(
+    cryptoMaker.AES(cryptoMaker.Key.fromUtf8(cryptoKey),
+        mode: cryptoMaker.AESMode.cbc),
+  );
+
+  final decrypted = encrypter.decrypt(
+      cryptoMaker.Encrypted.fromBase64(encryptedText),
+      iv: cryptoMaker.IV.fromUtf8(iv));
+  return decrypted;
+}
+
+String encryptTextSync(String text, {String? cryptoString}) {
+  if (text == '') {
+    return '';
+  }
+  final cs = cryptoString ?? _cachedCryptoString ?? '78915030';
+  final cryptoKey = _getCryptoKey(cs);
+  
   final encrypter = cryptoMaker.Encrypter(
     cryptoMaker.AES(cryptoMaker.Key.fromUtf8(cryptoKey),
         mode: cryptoMaker.AESMode.cbc),
@@ -68,7 +138,7 @@ Future<void> errorMessage(BuildContext context, String message) async {
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        title: Text(language!.error),
+        title: Text(language.error),
         content: Text(message),
         actions: [
           TextButton(
@@ -106,13 +176,21 @@ Future<void> errorMessage(BuildContext context, String message) async {
   return (passStrength, color);
 }
 
-String generateNewPassword() {
+Future<String> generateNewPassword() async {
+  await initDatabase();
+  
+  final length = int.tryParse(await getSetting('password_length') ?? '12') ?? 12;
+  final useLetters = (await getSetting('password_letters') ?? 'true') == 'true';
+  final useNumbers = (await getSetting('password_numbers') ?? 'true') == 'true';
+  final useSpecialChar = (await getSetting('password_special_char') ?? 'true') == 'true';
+  final useUppercase = (await getSetting('password_uppercase') ?? 'true') == 'true';
+  
   return password.randomPassword(
-      letters: true,
-      numbers: true,
-      passwordLength: 12,
-      specialChar: true,
-      uppercase: true);
+      letters: useLetters,
+      numbers: useNumbers,
+      passwordLength: length.toDouble(),
+      specialChar: useSpecialChar,
+      uppercase: useUppercase);
 }
 
 //password end
@@ -152,6 +230,69 @@ class HoverableCopyIconButton extends StatefulWidget {
 
 class _HoverableCopyIconButtonState extends State<HoverableCopyIconButton> {
   bool _isHovered = false;
+  OverlayEntry? _overlayEntry;
+  final GlobalKey _buttonKey = GlobalKey();
+
+  void _showPopup() {
+    final RenderBox? renderBox = _buttonKey.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox == null) return;
+
+    final Offset offset = renderBox.localToGlobal(Offset.zero);
+    final Size size = renderBox.size;
+
+    // Calculate popup size to center it above the button
+    const double popupWidth = 60.0;
+    const double popupHeight = 28.0;
+
+    _overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        left: offset.dx + (size.width / 2) - (popupWidth / 2),
+        top: offset.dy - popupHeight - 5,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            width: popupWidth,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.black87,
+              borderRadius: BorderRadius.circular(4),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: const Text(
+              'COPIED',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(_overlayEntry!);
+
+    Future.delayed(const Duration(seconds: 1), () {
+      if (mounted && _overlayEntry != null) {
+        _overlayEntry?.remove();
+        _overlayEntry = null;
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _overlayEntry?.remove();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -160,6 +301,7 @@ class _HoverableCopyIconButtonState extends State<HoverableCopyIconButton> {
         await Clipboard.setData(ClipboardData(
             text: widget.textController.text)
         );
+        _showPopup();
       },
       child: MouseRegion(
         cursor: SystemMouseCursors.click, // Set cursor to pointer on hover
@@ -175,6 +317,7 @@ class _HoverableCopyIconButtonState extends State<HoverableCopyIconButton> {
         },
         child: Icon(
           Icons.copy,
+          key: _buttonKey,
           size: 15,
           color: _isHovered ? Colors.black : Colors.grey,
         ),

@@ -58,9 +58,18 @@ class _PasswordsPageState extends State<PasswordsPage> {
   List<Widget> generatePasswordsList(int selectedId) {
     List<Widget> listRows = [];
 
-    for (var item in passwordsFromDB) {
+    // Make sure to create a new list or map if modification is needed
+    List<Map<String, dynamic>> modifiableResult = List.from(passwordsFromDB);
+
+    modifiableResult.sort((a, b) {
+      var a1 = decryptTextSync(a['title']);
+      var b1 = decryptTextSync(b['title']);
+      return a1.compareTo(b1);
+    });
+
+    for (var item in modifiableResult) {
       if (_searchEditController.text == '' ||
-          decryptText(item['title'])
+          decryptTextSync(item['title'])
               .toLowerCase()
               .contains(_searchEditController.text.toLowerCase())) {
         listRows.add(HoverablePasswordItem(
@@ -75,11 +84,11 @@ class _PasswordsPageState extends State<PasswordsPage> {
 
   Widget itemWidget(Map<String, dynamic> item,
       {bool showSaveButton = true, bool hidePassword = true}) {
-    _titleEditController.text = decryptText(item['title']) ?? '';
-    _loginEditController.text = decryptText(item['login']) ?? '';
-    _passwordEditController.text = decryptText(item['password']) ?? '';
-    _urlEditController.text = decryptText(item['url']) ?? '';
-    _commentEditController.text = decryptText(item['comment']) ?? '';
+    _titleEditController.text = decryptTextSync(item['title']) ?? '';
+    _loginEditController.text = decryptTextSync(item['login']) ?? '';
+    _passwordEditController.text = decryptTextSync(item['password']) ?? '';
+    _urlEditController.text = decryptTextSync(item['url']) ?? '';
+    _commentEditController.text = decryptTextSync(item['comment']) ?? '';
     String changed = '';
     if (item['changed'] != null) {
       final changedValue = DateTime.fromMillisecondsSinceEpoch(item['changed']);
@@ -143,7 +152,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
                       child: Padding(
                           padding: EdgeInsets.all(5),
                           child: Text(
-                            language!.title,
+                            language.title,
                             style: const TextStyle(fontSize: 12),
                           ))),
                   TableCell(
@@ -152,10 +161,15 @@ class _PasswordsPageState extends State<PasswordsPage> {
                       enabledBorder: enabledUnderLineInputBorder(),
                       focusedBorder: focusedUnderLineInputBorder(),
                       isDense: true,
-                      hintText: language!.title,
+                      hintText: language.title,
                       hintStyle: const TextStyle(color: Colors.black26),
                       contentPadding:
                           const EdgeInsets.only(top: 17, bottom: 14, left: 5),
+                      suffixIcon: Padding(
+                        padding: const EdgeInsets.only(right: 12),
+                        child: HoverableCopyIconButton(
+                            textController: _titleEditController),
+                      ),
                     ),
                     controller: _titleEditController,
                     style: const TextStyle(fontSize: 12),
@@ -169,7 +183,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
                       child: Padding(
                           padding: EdgeInsets.all(5),
                           child: Text(
-                            language!.login,
+                            language.login,
                             style: const TextStyle(fontSize: 12),
                           ))),
                   TableCell(
@@ -178,7 +192,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
                       enabledBorder: enabledUnderLineInputBorder(),
                       focusedBorder: focusedUnderLineInputBorder(),
                       isDense: true,
-                      hintText: language!.login,
+                      hintText: language.login,
                       hintStyle: TextStyle(color: Colors.black26),
                       contentPadding:
                           const EdgeInsets.only(top: 15, bottom: 0, left: 5),
@@ -197,7 +211,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
                       child: Padding(
                           padding: EdgeInsets.all(5),
                           child: Text(
-                            language!.password,
+                            language.password,
                             style: TextStyle(fontSize: 12),
                           ))),
                   TableCell(
@@ -209,7 +223,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
                         enabledBorder: enabledUnderLineInputBorder(),
                         focusedBorder: focusedUnderLineInputBorder(),
                         isDense: true,
-                        hintText: language!.password,
+                        hintText: language.password,
                         hintStyle: TextStyle(color: Colors.black26),
                         contentPadding:
                             const EdgeInsets.only(top: 15, bottom: 0, left: 5),
@@ -237,9 +251,9 @@ class _PasswordsPageState extends State<PasswordsPage> {
                                 Icons.autorenew,
                                 size: 15,
                               ),
-                              onPressed: () {
+                              onPressed: () async {
                                 _passwordEditController.text =
-                                    generateNewPassword();
+                                    await generateNewPassword();
                               },
                             ),
                             Padding(
@@ -260,7 +274,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
                       child: Padding(
                           padding: EdgeInsets.all(5),
                           child: Text(
-                            language!.url,
+                            language.url,
                             style: TextStyle(fontSize: 12),
                           ))),
                   TableCell(
@@ -269,7 +283,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
                         enabledBorder: enabledUnderLineInputBorder(),
                         focusedBorder: focusedUnderLineInputBorder(),
                         isDense: true,
-                        hintText: language!.url,
+                        hintText: language.url,
                         hintStyle: TextStyle(color: Colors.black26),
                         contentPadding:
                             const EdgeInsets.only(top: 16, bottom: 0, left: 5),
@@ -298,7 +312,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
                       child: Padding(
                           padding: EdgeInsets.all(5),
                           child: Text(
-                            language!.comment,
+                            language.comment,
                             style: TextStyle(fontSize: 12),
                           ))),
                   TableCell(
@@ -307,7 +321,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
                       enabledBorder: enabledUnderLineInputBorder(),
                       focusedBorder: focusedUnderLineInputBorder(),
                       isDense: true,
-                      hintText: language!.comment,
+                      hintText: language.comment,
                       hintStyle: const TextStyle(color: Colors.black26),
                       contentPadding:
                           const EdgeInsets.only(top: 17, bottom: 14, left: 5),
@@ -324,7 +338,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
                       child: Padding(
                           padding: const EdgeInsets.only(top: 10, left: 5),
                           child: Text(
-                            language!.changed,
+                            language.changed,
                             style: const TextStyle(fontSize: 12, color: Colors.black38),
                           ))),
                   TableCell(
@@ -346,7 +360,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
                   children: [
                     ElevatedButton.icon(
                       icon: const Icon(Icons.save),
-                      label: Text(language!.save),
+                      label: Text(language.save),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12.0, vertical: 12.0), // Padding
@@ -357,7 +371,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
                       ),
                       onPressed: () async {
                         if (_titleEditController.text == '') {
-                          errorMessage(context, language!.titleIsEmpty);
+                          errorMessage(context, language.titleIsEmpty);
                         } else {
                           await updateData(
                               item['id'],
@@ -375,7 +389,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
                     ),
                     ElevatedButton.icon(
                       icon: Icon(Icons.delete_forever),
-                      label: Text(language!.delete),
+                      label: Text(language.delete),
                       style: ElevatedButton.styleFrom(
                         // primary: Colors.green, // Background color
                         // onPrimary: Colors.white, // Text and icon color
@@ -426,7 +440,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
                 },
               ),
               contentPadding: const EdgeInsets.only(top: 10),
-              hintText: language!.search,
+              hintText: language.search,
               hintStyle: const TextStyle(fontSize: 12, color: Colors.black26),
               filled: true,
               // Enable the background color
@@ -469,7 +483,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
             _openModalAddItem(context);
           },
           label: Text(
-            language!.add,
+            language.add,
             style: const TextStyle(fontSize: 12),
           ),
           style: ElevatedButton.styleFrom(
@@ -516,28 +530,28 @@ class _PasswordsPageState extends State<PasswordsPage> {
                               child: Container(
                                   padding: const EdgeInsets.all(10),
                                   child: Text(
-                                    language!.title,
+                                    language.title,
                                     style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                                   ))),
                           Expanded(
                               child: Container(
                                   padding: const EdgeInsets.all(10),
                                   child: Text(
-                                    language!.login,
+                                    language.login,
                                     style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                                   ))),
                           Expanded(
                               child: Container(
                                   padding: const EdgeInsets.all(10),
                                   child: Text(
-                                    language!.passwordStrength,
+                                    language.passwordStrength,
                                     style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                                   ))),
                           Expanded(
                               child: Container(
                                   padding: const EdgeInsets.all(10),
                                   child: Text(
-                                    language!.url,
+                                    language.url,
                                     style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                                   ))),
                         ],
@@ -570,8 +584,8 @@ class _PasswordsPageState extends State<PasswordsPage> {
                       ),
                       child: Column(
                         children: [
-                          Text(language!.passwordStrengthRecommendations, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),),
-                          Expanded(child: Text(language!.passwordStrengthRecommendationsText, style: const TextStyle(fontSize: 12),))
+                          Text(language.passwordStrengthRecommendations, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),),
+                          Expanded(child: Text(language.passwordStrengthRecommendationsText, style: const TextStyle(fontSize: 12),))
                         ],
                       ),
                   )
@@ -612,12 +626,12 @@ class _PasswordsPageState extends State<PasswordsPage> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text(language!.cancel),
+              child: Text(language.cancel),
             ),
             TextButton(
               onPressed: () {
                 if (_titleEditController.text == '') {
-                  errorMessage(context, language!.titleIsEmpty);
+                  errorMessage(context, language.titleIsEmpty);
                 } else {
                   insertData(
                       _titleEditController.text,
@@ -652,13 +666,13 @@ class _PasswordsPageState extends State<PasswordsPage> {
               onPressed: () {
                 Navigator.of(context).pop(false); // User pressed "Cancel"
               },
-              child: Text(language!.cancel),
+              child: Text(language.cancel),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop(true); // User pressed "Confirm"
               },
-              child: Text(language!.confirm),
+              child: Text(language.confirm),
             ),
           ],
         );
@@ -705,7 +719,7 @@ class _HoverablePasswordItemState extends State<HoverablePasswordItem> {
 
       if (listOfColumns[i] == 'password') {
         (passStrength, color) =
-            passwordStrength(decryptText(item[listOfColumns[i]]));
+            passwordStrength(decryptTextSync(item[listOfColumns[i]]));
         cellValue = Row(
           children: [
             Icon(
@@ -714,18 +728,18 @@ class _HoverablePasswordItemState extends State<HoverablePasswordItem> {
             ),
             Text(
               passStrength,
-              style: const TextStyle(fontSize: 13),
+              style: const TextStyle(fontSize: 12),
             ),
           ],
         );
       } else {
-        var text = item[listOfColumns[i]] == '' ? '--' : decryptText(item[listOfColumns[i]]);
+        var text = item[listOfColumns[i]] == '' ? '--' : decryptTextSync(item[listOfColumns[i]]);
         if (text.length > 17) {
           text = '${text.substring(0,17)}...';
         }
         cellValue = Text(
           text,
-          style: const TextStyle(fontSize: 13),
+          style: const TextStyle(fontSize: 12),
         );
       }
 
@@ -783,11 +797,13 @@ class _HoverablePasswordItemState extends State<HoverablePasswordItem> {
             color: itemColor,
           ),
           child: ListTile(
+            dense: true,
             mouseCursor: SystemMouseCursors.click,
             hoverColor: Colors.white,
             contentPadding: const EdgeInsets.all(0),
             selected: _isSelected,
             title: Row(
+              // crossAxisAlignment: CrossAxisAlignment.start,
               children: _generateCells(widget.item),
             ),
           ),

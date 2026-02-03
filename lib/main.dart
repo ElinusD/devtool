@@ -7,14 +7,17 @@ import 'package:devtool/store/AppStore.dart';
 import 'package:devtool/pages/passwords.dart';
 import 'package:devtool/pages/docsPage.dart';
 import 'package:devtool/pages/settingsPage.dart';
+import 'package:devtool/pages/masterPasswordPage.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:window_manager/window_manager.dart';
 import 'pages/includes/footer.dart';
 
 import 'locale/AppLocalizations.dart';
 import 'locale/Languages.dart';
+import 'locale/LanguageEn.dart';
+import 'utils/common.dart';
 
-BaseLanguage? language;
+BaseLanguage language = LanguageEn();
 
 AppStore appStore = AppStore();
 
@@ -23,7 +26,10 @@ void main() async {
 
   initDBConnection();
 
-  const AppLocalizations().initLocale();
+  await const AppLocalizations().initLocale();
+  
+  // Initialize crypto string cache
+  await initCryptoString();
 
   await windowManager.ensureInitialized();
 
@@ -54,7 +60,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
       ),
-      home: const MainPage(),
+      home: const MasterPasswordPage(),
     );
   }
 }
@@ -122,7 +128,7 @@ class _MainPageState extends State<MainPage> {
                               hoverColor: Colors.grey,
                               selectedColor: Colors.white,
                               selectedTileColor: const Color.fromRGBO(7, 38, 79, 60),
-                              title: Text(language!.passwords),
+                              title: Text(language.passwords),
                               titleTextStyle: const TextStyle(fontSize: 13),
                               textColor: Colors.grey,
                               selected: _selectedIndex == 0,
@@ -133,7 +139,7 @@ class _MainPageState extends State<MainPage> {
                                 Icons.find_in_page,
                                 color: Colors.white,
                               ),
-                              title: Text(language!.documents),
+                              title: Text(language.documents),
                               titleTextStyle: const TextStyle(fontSize: 13),
                               hoverColor: Colors.grey,
                               selectedColor: Colors.white,
@@ -147,7 +153,7 @@ class _MainPageState extends State<MainPage> {
                                 Icons.settings,
                                 color: Colors.white,
                               ),
-                              title: Text(language!.settings),
+                              title: Text(language.settings),
                               titleTextStyle: const TextStyle(fontSize: 13),
                               selectedColor: Colors.white,
                               selectedTileColor: const Color.fromRGBO(7, 38, 79, 60),
