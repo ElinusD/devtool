@@ -3,6 +3,8 @@ import 'package:devtool/utils/db.dart';
 import 'package:devtool/pages/masterPasswordPage.dart';
 import 'package:flutter/material.dart';
 import 'package:nb_utils/nb_utils.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:window_manager/window_manager.dart';
 
 class SettingsPage extends StatefulWidget {
   final void Function(int) redrawMainPage;
@@ -37,6 +39,10 @@ class _SettingsPageState extends State<SettingsPage> {
   final TextEditingController _cryptoStringController = TextEditingController();
   bool _isCryptoStringVisible = false;
   bool _isChangingCryptoString = false;
+  
+  // Export database
+  bool _isExporting = false;
+  bool _isImporting = false;
 
   @override
   void initState() {
@@ -1043,9 +1049,240 @@ class _SettingsPageState extends State<SettingsPage> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                      child: OutlinedButton.icon(
+                  Row(
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: _isExporting ? null : () async {
+                          // Show immediate feedback
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Opening file picker...'),
+                                duration: Duration(seconds: 1),
+                              ),
+                            );
+                          }
+                          
+                          setState(() {
+                            _isExporting = true;
+                          });
+                          
+                          try {
+                            print('Opening file picker...');
+                            
+                            // Ensure window is focused and brought to front
+                            await windowManager.show();
+                            await windowManager.focus();
+                            
+                            // Small delay to ensure window is active
+                            await Future.delayed(const Duration(milliseconds: 300));
+                            
+                            // Show file picker dialog to choose save location
+                            // On macOS, the dialog might need to be modal
+                            String? outputPath = await FilePicker.platform.saveFile(
+                              dialogTitle: 'Export Database',
+                              fileName: 'dataExport.db',
+                              type: FileType.any,
+                            );
+
+                            print('File picker returned: $outputPath');
+
+                            if (outputPath != null && outputPath.isNotEmpty) {
+                              print('Exporting database to: $outputPath');
+                              await exportDatabase(exportPath: outputPath);
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Database exported to: $outputPath'),
+                                    backgroundColor: Colors.green,
+                                    duration: const Duration(seconds: 3),
+                                  ),
+                                );
+                              }
+                            } else {
+                              print('File picker was cancelled or returned null');
+                              // File picker might not be working - show info message
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('File picker dialog did not open. Please ensure the app has file access permissions and was rebuilt after adding entitlements.'),
+                                    backgroundColor: Colors.orange,
+                                    duration: Duration(seconds: 4),
+                                  ),
+                                );
+                              }
+                            }
+                          } catch (e, stackTrace) {
+                            print('FilePicker error: $e');
+                            print('Stack trace: $stackTrace');
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Error: ${e.toString()}'),
+                                  backgroundColor: Colors.red,
+                                  duration: const Duration(seconds: 3),
+                                ),
+                              );
+                            }
+                          } finally {
+                            if (mounted) {
+                              setState(() {
+                                _isExporting = false;
+                              });
+                            }
+                          }
+                        },
+                        icon: _isExporting
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.download, size: 18),
+                        label: Text(
+                          _isExporting ? 'Exporting...' : 'Export Database',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: colorScheme.primary,
+                          side: BorderSide(color: colorScheme.primary.withOpacity(0.5)),
+                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      OutlinedButton.icon(
+                        onPressed: _isImporting ? null : () async {
+                          // Show immediate feedback
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Opening file picker...'),
+                                duration: Duration(seconds: 1),
+                              ),
+                            );
+                          }
+                          
+                          setState(() {
+                            _isImporting = true;
+                          });
+                          
+                          try {
+                            print('Opening file picker for import...');
+                            
+                            // Ensure window is focused and brought to front
+                            await windowManager.show();
+                            await windowManager.focus();
+                            
+                            // Small delay to ensure window is active
+                            await Future.delayed(const Duration(milliseconds: 300));
+                            
+                            // Show file picker dialog to choose database file
+                            FilePickerResult? result = await FilePicker.platform.pickFiles(
+                              dialogTitle: 'Import Database',
+                              type: FileType.custom,
+                              allowedExtensions: ['db'],
+                            );
+
+                            print('File picker returned: ${result?.files.single.path}');
+
+                            if (result != null && result.files.single.path != null) {
+                              final importPath = result.files.single.path!;
+                              print('Importing database from: $importPath');
+                              
+                              // Confirm import with user
+                              final confirmed = await showDialog<bool>(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: const Text('Import Database?'),
+                                    content: const Text(
+                                      'This will replace your current database with the imported one. Your current database will be backed up. Are you sure you want to continue?',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.of(context).pop(false),
+                                        child: const Text('Cancel'),
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: () => Navigator.of(context).pop(true),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Theme.of(context).colorScheme.primary,
+                                          foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                                        ),
+                                        child: const Text('Import'),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                              
+                              if (confirmed == true) {
+                                await importDatabase(importPath);
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Database imported successfully'),
+                                      backgroundColor: Colors.green,
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                  // Navigate to master password page since imported DB might have different master password
+                                  Navigator.of(context).pushAndRemoveUntil(
+                                    MaterialPageRoute(
+                                      builder: (context) => const MasterPasswordPage(),
+                                    ),
+                                    (route) => false,
+                                  );
+                                }
+                              }
+                            } else {
+                              print('File picker was cancelled or returned null');
+                            }
+                          } catch (e, stackTrace) {
+                            print('Import error: $e');
+                            print('Stack trace: $stackTrace');
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Error importing database: ${e.toString()}'),
+                                  backgroundColor: Colors.red,
+                                  duration: const Duration(seconds: 3),
+                                ),
+                              );
+                            }
+                          } finally {
+                            if (mounted) {
+                              setState(() {
+                                _isImporting = false;
+                              });
+                            }
+                          }
+                        },
+                        icon: _isImporting
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.upload, size: 18),
+                        label: Text(
+                          _isImporting ? 'Importing...' : 'Import Database',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: colorScheme.secondary,
+                          side: BorderSide(color: colorScheme.secondary.withOpacity(0.5)),
+                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      OutlinedButton.icon(
                         onPressed: () async {
                           await deleteDB();
                           if (mounted) {
@@ -1064,20 +1301,21 @@ class _SettingsPageState extends State<SettingsPage> {
                             );
                           }
                         },
-                      icon: const Icon(Icons.delete_outline, size: 18),
-                      label: Text(
-                        language.deleteDatabase,
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: colorScheme.error,
-                        side: BorderSide(color: colorScheme.error.withOpacity(0.5)),
-                        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                        icon: const Icon(Icons.delete_outline, size: 18),
+                        label: Text(
+                          language.deleteDatabase,
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: colorScheme.error,
+                          side: BorderSide(color: colorScheme.error.withOpacity(0.5)),
+                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
                 ],
               ),

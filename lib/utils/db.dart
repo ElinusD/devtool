@@ -87,15 +87,48 @@ Future<void> deleteDB() async {
   }
 }
 
-Future<void> exportDatabase() async {
+Future<void> exportDatabase({String? exportPath}) async {
   final String pathToDatabase = await getDBPath();
-  Directory appDocDir = await getApplicationDocumentsDirectory();
-  String exportPath = join(appDocDir.path, databaseExportName);
+  
+  // If no path provided, use default location
+  if (exportPath == null) {
+    Directory appDocDir = await getApplicationDocumentsDirectory();
+    exportPath = join(appDocDir.path, databaseExportName);
+  }
 
   // Copy the database file
   File dbFile = File(pathToDatabase);
   File exportFile = File(exportPath);
   await dbFile.copy(exportFile.path);
+}
+
+Future<void> importDatabase(String importPath) async {
+  // Close current database connection if open
+  if (_database != null) {
+    await _database!.close();
+    _database = null;
+  }
+  
+  final String pathToDatabase = await getDBPath();
+  
+  // Check if import file exists
+  File importFile = File(importPath);
+  if (!await importFile.exists()) {
+    throw Exception('Import file does not exist');
+  }
+  
+  // Backup current database if it exists
+  File currentDbFile = File(pathToDatabase);
+  if (await currentDbFile.exists()) {
+    final backupPath = '${pathToDatabase}.backup.${DateTime.now().millisecondsSinceEpoch}';
+    await currentDbFile.copy(backupPath);
+  }
+  
+  // Copy imported file to database location
+  await importFile.copy(pathToDatabase);
+  
+  // Reinitialize database connection
+  await initDatabase();
 }
 
 // CRUD

@@ -262,6 +262,7 @@ class _MasterPasswordPageState extends State<MasterPasswordPage> {
                             controller: _passwordController,
                             obscureText: _isObscure,
                             enabled: !_isLoading,
+                            autofocus: true,
                             textInputAction: _isCreating ? TextInputAction.next : TextInputAction.done,
                             onFieldSubmitted: (value) {
                               if (!_isCreating && !_isLoading) {

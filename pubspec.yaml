@@ -48,6 +48,7 @@ dependencies:
   random_password_generator: ^0.2.1
   url_launcher: ^6.3.0
   crypto: ^3.0.5
+  file_picker: ^8.1.4
 
 dev_dependencies:
   flutter_test:
