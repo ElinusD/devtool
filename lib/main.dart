@@ -8,6 +8,7 @@ import 'package:devtool/pages/passwords.dart';
 import 'package:devtool/pages/docsPage.dart';
 import 'package:devtool/pages/settingsPage.dart';
 import 'package:devtool/pages/masterPasswordPage.dart';
+import 'package:devtool/pages/welcomePage.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:window_manager/window_manager.dart';
 import 'pages/includes/footer.dart';
@@ -60,7 +61,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
       ),
-      home: const MasterPasswordPage(),
+      home: const WelcomePage(),
     );
   }
 }

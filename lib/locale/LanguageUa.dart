@@ -147,9 +147,267 @@ Thank you for using [Your App Name]! Your security is our priority, and we’re 
   String get passwordStrengthRecommendationsText => '''
     1. Довжина має значення: прагніть до принаймні 12-16 символів. Довші паролі, як правило, важче зламати.
     2. Використовуйте комбінацію символів: додайте великі та малі літери, цифри та спеціальні символи (наприклад, !, @, #, \$).
-    3. Уникайте загальних слів: не використовуйте інформацію, яку легко вгадати, як-от імена, дні народження чи загальні слова. Замість цього вибирайте випадкові фрази або поєднання незв’язаних слів.
-    4. Використовуйте парольні фрази: створіть запам’ятовувану парольну фразу, з’єднавши випадкові слова чи речення. Наприклад, «BlueSky! Runs5Fast».
+    3. Уникайте загальних слів: не використовуйте інформацію, яку легко вгадати, як-от імена, дні народження чи загальні слова. Замість цього вибирайте випадкові фрази або поєднання незв'язаних слів.
+    4. Використовуйте парольні фрази: створіть запам'ятовувану парольну фразу, з'єднавши випадкові слова чи речення. Наприклад, «BlueSky! Runs5Fast».
     5. Унікальний для кожного облікового запису: ніколи не використовуйте паролі на кількох сайтах. Використовуйте менеджер паролів, щоб безпечно відстежувати їх.
     6. Увімкніть двофакторну автентифікацію (2FA): якщо можливо, увімкніть 2FA для додаткового рівня безпеки, вимагаючи другу форму перевірки на додаток до вашого пароля.
   ''';
+  
+  // Welcome Page
+  @override
+  String get welcome => 'Ласкаво просимо';
+  
+  @override
+  String get chooseHowToProceed => 'Виберіть, як ви хочете продовжити';
+  
+  @override
+  String get createNewDB => 'Створити нову БД';
+  
+  @override
+  String get importDB => 'Імпортувати БД';
+  
+  // Master Password Page
+  @override
+  String get createMasterPassword => 'Створити головний пароль';
+  
+  @override
+  String get welcomeBack => 'З поверненням';
+  
+  @override
+  String get secureYourData => 'Захистіть свої дані головним паролем';
+  
+  @override
+  String get enterMasterPassword => 'Введіть головний пароль для продовження';
+  
+  @override
+  String get hint => 'Підказка';
+  
+  @override
+  String get passwordField => 'Пароль';
+  
+  @override
+  String get enterPassword => 'Введіть пароль';
+  
+  @override
+  String get confirmPasswordField => 'Підтвердити пароль';
+  
+  @override
+  String get confirmPasswordHint => 'Підтвердіть пароль';
+  
+  @override
+  String get pleaseEnterPassword => 'Будь ласка, введіть пароль';
+  
+  @override
+  String get passwordMinLength => 'Пароль повинен містити принаймні 4 символи';
+  
+  @override
+  String get pleaseConfirmPassword => 'Будь ласка, підтвердіть пароль';
+  
+  @override
+  String get passwordsDoNotMatch => 'Паролі не співпадають';
+  
+  @override
+  String get createPassword => 'Створити пароль';
+  
+  @override
+  String get unlock => 'Розблокувати';
+  
+  @override
+  String get importDatabase => 'Імпортувати базу даних';
+  
+  @override
+  String get importing => 'Імпортування...';
+  
+  @override
+  String get importDatabaseInstead => 'Імпортувати базу даних замість цього';
+  
+  @override
+  String get importingDatabase => 'Імпортування бази даних...';
+  
+  @override
+  String get incorrectMasterPassword => 'Невірний головний пароль';
+  
+  @override
+  String get errorCreatingMasterPassword => 'Помилка створення головного пароля';
+  
+  @override
+  String get errorVerifyingPassword => 'Помилка перевірки пароля';
+  
+  // Import/Export
+  @override
+  String get importDatabaseQuestion => 'Імпортувати базу даних?';
+  
+  @override
+  String get importDatabaseWarning => 'Це замінить поточну базу даних на імпортовану. Поточна база даних буде збережена як резервна копія. Ви впевнені, що хочете продовжити?';
+  
+  @override
+  String get databaseImportedSuccessfully => 'Базу даних успішно імпортовано';
+  
+  @override
+  String get errorImportingDatabase => 'Помилка імпортування бази даних';
+  
+  @override
+  String get exportDatabase => 'Експортувати базу даних';
+  
+  @override
+  String get exporting => 'Експортування...';
+  
+  @override
+  String get databaseExportedTo => 'Базу даних експортовано до';
+  
+  @override
+  String get filePickerCancelled => 'Вибір файлу скасовано';
+  
+  @override
+  String get filePickerPermissionError => 'Діалог вибору файлу не відкрився. Переконайтеся, що додаток має дозволи на доступ до файлів і був перебудований після додавання дозволів.';
+  
+  // Settings Page
+  @override
+  String get settingsSaved => 'Налаштування збережено';
+  
+  @override
+  String get pleaseFillAllFields => 'Будь ласка, заповніть всі поля';
+  
+  @override
+  String get newPasswordMinLength => 'Новий пароль повинен містити принаймні 4 символи';
+  
+  @override
+  String get newPasswordsDoNotMatch => 'Нові паролі не співпадають';
+  
+  @override
+  String get masterPasswordChangedSuccessfully => 'Головний пароль успішно змінено';
+  
+  @override
+  String get masterPhraseSaved => 'Підказка збережена';
+  
+  @override
+  String get pleaseEnterEncryptionKey => 'Будь ласка, введіть ключ шифрування';
+  
+  @override
+  String get encryptionKeyMinLength => 'Ключ шифрування повинен містити принаймні 8 символів';
+  
+  @override
+  String get changeEncryptionKeyQuestion => 'Змінити ключ шифрування?';
+  
+  @override
+  String get changeEncryptionKeyWarning => 'Це перешифрує всі ваші дані. Цей процес не можна скасувати. Ви впевнені, що хочете продовжити?';
+  
+  @override
+  String get continueAction => 'Продовжити';
+  
+  @override
+  String get encryptionKeyChangedSuccessfully => 'Ключ шифрування успішно змінено. Всі дані були перешифровані.';
+  
+  @override
+  String get passwordLength => 'Довжина пароля';
+  
+  @override
+  String get decrease => 'Зменшити';
+  
+  @override
+  String get increase => 'Збільшити';
+  
+  @override
+  String get includeLetters => 'Включити літери';
+  
+  @override
+  String get includeLettersDesc => 'Включити літери (a-z)';
+  
+  @override
+  String get includeNumbers => 'Включити цифри';
+  
+  @override
+  String get includeNumbersDesc => 'Включити цифри (0-9)';
+  
+  @override
+  String get specialCharacters => 'Спеціальні символи';
+  
+  @override
+  String get includeSpecialCharacters => 'Включити спеціальні символи (!@#\$%...)';
+  
+  @override
+  String get includeUppercase => 'Включити великі літери';
+  
+  @override
+  String get includeUppercaseDesc => 'Включити великі літери (A-Z)';
+  
+  @override
+  String get savePasswordSettings => 'Зберегти налаштування пароля';
+  
+  @override
+  String get currentPassword => 'Поточний пароль';
+  
+  @override
+  String get currentPasswordField => 'Поточний пароль';
+  
+  @override
+  String get newPassword => 'Новий пароль';
+  
+  @override
+  String get newPasswordField => 'Новий пароль';
+  
+  @override
+  String get confirmNewPassword => 'Підтвердити новий пароль';
+  
+  @override
+  String get changeMasterPassword => 'Змінити головний пароль';
+  
+  @override
+  String get changing => 'Зміна...';
+  
+  @override
+  String get masterPhrase => 'Підказка';
+  
+  @override
+  String get masterPhraseField => 'Підказка';
+  
+  @override
+  String get masterPhraseHint => 'Введіть підказку для запам\'ятовування пароля';
+  
+  @override
+  String get saveMasterPhrase => 'Зберегти підказку';
+  
+  @override
+  String get encryptionKey => 'Ключ шифрування';
+  
+  @override
+  String get encryptionKeyWarning => 'Попередження: це перешифрує всі дані';
+  
+  @override
+  String get encryptionKeyField => 'Ключ шифрування';
+  
+  @override
+  String get encryptionKeyHint => 'Введіть принаймні 8 символів';
+  
+  @override
+  String get changeEncryptionKey => 'Змінити ключ шифрування';
+  
+  @override
+  String get reEncrypting => 'Перешифрування...';
+  
+  @override
+  String get openingFilePicker => 'Відкриття діалогу вибору файлу...';
+  
+  // Delete
+  @override
+  String get deleteDatabaseQuestion => 'Видалити базу даних?';
+  
+  @override
+  String get deleteDatabaseWarning => 'Ви впевнені, що хочете видалити базу даних? Цю дію неможливо скасувати. Всі ваші паролі та налаштування будуть безповоротно видалені.';
+  
+  @override
+  String get databaseDeleted => 'Базу даних видалено';
+  
+  // Passwords Page
+  @override
+  String get enterNewRecordData => 'Введіть дані нового запису';
+  
+  @override
+  String get ok => 'ОК';
+  
+  @override
+  String get confirmAction => 'Підтвердити дію';
+  
+  @override
+  String get areYouSureDelete => 'Ви впевнені, що хочете видалити?';
 }

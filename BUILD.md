@@ -19,12 +19,6 @@ This document contains all commands needed to build and run the devtool Flutter 
 flutter pub get
 ```
 
-### 2. Generate Localization Files
-
-```bash
-flutter gen-l10n
-```
-
 ### 3. Platform-Specific Setup
 
 #### iOS/macOS - Install CocoaPods Dependencies

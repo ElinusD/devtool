@@ -380,7 +380,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
                               _passwordEditController.text,
                               _urlEditController.text,
                               _commentEditController.text);
-                          _loadPasswordsList(item['id']);
+                          await _loadPasswordsList(item['id']);
                         }
                       },
                     ),
@@ -610,7 +610,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Enter new record data'),
+          title: Text(language.enterNewRecordData),
           content: Column(mainAxisSize: MainAxisSize.min, children: [
             itemWidget({
               'id': 0,
@@ -629,29 +629,27 @@ class _PasswordsPageState extends State<PasswordsPage> {
               child: Text(language.cancel),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 if (_titleEditController.text == '') {
                   errorMessage(context, language.titleIsEmpty);
                 } else {
-                  insertData(
+                  await insertData(
                       _titleEditController.text,
                       _loginEditController.text,
                       _passwordEditController.text,
                       _urlEditController.text,
                       _commentEditController.text);
                   Navigator.of(context).pop();
+                  // Reload the passwords list after adding new record
+                  await _loadPasswordsList(0);
                 }
               },
-              child: const Text('OK'),
+              child: Text(language.ok),
             ),
           ],
         );
       },
     );
-
-    setState(() {
-      _loadPasswordsList(0);
-    });
   }
 
   Future<void> _confirmDeleteRecord(BuildContext context, int itemId) async {
@@ -659,8 +657,8 @@ class _PasswordsPageState extends State<PasswordsPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Confirm Action'),
-          content: Text('Are you sure you want to delete?'),
+          title: Text(language.confirmAction),
+          content: Text(language.areYouSureDelete),
           actions: [
             TextButton(
               onPressed: () {

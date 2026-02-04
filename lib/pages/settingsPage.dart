@@ -1,6 +1,8 @@
 import 'package:devtool/main.dart';
 import 'package:devtool/utils/db.dart';
 import 'package:devtool/pages/masterPasswordPage.dart';
+import 'package:devtool/pages/welcomePage.dart';
+import 'package:devtool/locale/Languages.dart';
 import 'package:flutter/material.dart';
 import 'package:nb_utils/nb_utils.dart';
 import 'package:file_picker/file_picker.dart';
@@ -94,10 +96,11 @@ class _SettingsPageState extends State<SettingsPage> {
     await setSetting('password_special_char', _useSpecialChar.toString());
     await setSetting('password_uppercase', _useUppercase.toString());
     
+    final language = BaseLanguage.of(context);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Settings saved'),
-        duration: Duration(seconds: 1),
+      SnackBar(
+        content: Text(language.settingsSaved),
+        duration: const Duration(seconds: 1),
       ),
     );
   }
@@ -106,33 +109,36 @@ class _SettingsPageState extends State<SettingsPage> {
     if (_oldPasswordController.text.isEmpty ||
         _newPasswordController.text.isEmpty ||
         _confirmPasswordController.text.isEmpty) {
+      final language = BaseLanguage.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please fill in all fields'),
+        SnackBar(
+          content: Text(language.pleaseFillAllFields),
           backgroundColor: Colors.red,
-          duration: Duration(seconds: 2),
+          duration: const Duration(seconds: 2),
         ),
       );
       return;
     }
 
     if (_newPasswordController.text.length < 4) {
+      final language = BaseLanguage.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('New password must be at least 4 characters'),
+        SnackBar(
+          content: Text(language.newPasswordMinLength),
           backgroundColor: Colors.red,
-          duration: Duration(seconds: 2),
+          duration: const Duration(seconds: 2),
         ),
       );
       return;
     }
 
     if (_newPasswordController.text != _confirmPasswordController.text) {
+      final language = BaseLanguage.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('New passwords do not match'),
+        SnackBar(
+          content: Text(language.newPasswordsDoNotMatch),
           backgroundColor: Colors.red,
-          duration: Duration(seconds: 2),
+          duration: const Duration(seconds: 2),
         ),
       );
       return;
@@ -154,11 +160,12 @@ class _SettingsPageState extends State<SettingsPage> {
       _confirmPasswordController.clear();
 
       if (mounted) {
+        final language = BaseLanguage.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Master password changed successfully'),
+          SnackBar(
+            content: Text(language.masterPasswordChangedSuccessfully),
             backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
+            duration: const Duration(seconds: 2),
           ),
         );
       }
@@ -185,10 +192,11 @@ class _SettingsPageState extends State<SettingsPage> {
     await initDatabase();
     await setMasterPhrase(_masterPhraseController.text);
     
+    final language = BaseLanguage.of(context);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Master phrase saved'),
-        duration: Duration(seconds: 1),
+      SnackBar(
+        content: Text(language.masterPhraseSaved),
+        duration: const Duration(seconds: 1),
       ),
     );
   }
@@ -197,22 +205,24 @@ class _SettingsPageState extends State<SettingsPage> {
     final newCryptoString = _cryptoStringController.text.trim();
     
     if (newCryptoString.isEmpty) {
+      final language = BaseLanguage.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter an encryption key'),
+        SnackBar(
+          content: Text(language.pleaseEnterEncryptionKey),
           backgroundColor: Colors.red,
-          duration: Duration(seconds: 2),
+          duration: const Duration(seconds: 2),
         ),
       );
       return;
     }
     
     if (newCryptoString.length < 8) {
+      final language = BaseLanguage.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Encryption key must be at least 8 characters'),
+        SnackBar(
+          content: Text(language.encryptionKeyMinLength),
           backgroundColor: Colors.red,
-          duration: Duration(seconds: 2),
+          duration: const Duration(seconds: 2),
         ),
       );
       return;
@@ -222,15 +232,14 @@ class _SettingsPageState extends State<SettingsPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
+        final language = BaseLanguage.of(context);
         return AlertDialog(
-          title: const Text('Change Encryption Key?'),
-          content: const Text(
-            'This will re-encrypt all your data. This process cannot be undone. Are you sure you want to continue?',
-          ),
+          title: Text(language.changeEncryptionKeyQuestion),
+          content: Text(language.changeEncryptionKeyWarning),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
+              child: Text(language.cancel),
             ),
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(true),
@@ -238,7 +247,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 backgroundColor: Theme.of(context).colorScheme.error,
                 foregroundColor: Theme.of(context).colorScheme.onError,
               ),
-              child: const Text('Continue'),
+              child: Text(language.continueAction),
             ),
           ],
         );
@@ -259,10 +268,10 @@ class _SettingsPageState extends State<SettingsPage> {
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Encryption key changed successfully. All data has been re-encrypted.'),
+          SnackBar(
+            content: Text(language.encryptionKeyChangedSuccessfully),
             backgroundColor: Colors.green,
-            duration: Duration(seconds: 3),
+            duration: const Duration(seconds: 3),
           ),
         );
       }
@@ -311,44 +320,31 @@ class _SettingsPageState extends State<SettingsPage> {
         child: SingleChildScrollView(
           child: Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 600),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              constraints: const BoxConstraints(maxWidth: 900),
+              child: Table(
+                columnWidths: const {
+                  0: FlexColumnWidth(1),
+                  1: FlexColumnWidth(2),
+                },
                 children: [
                   // Language Settings
-                  Row(
+                  TableRow(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: colorScheme.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          Icons.language,
-                          color: colorScheme.primary,
-                          size: 20,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        language.language,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
+                      Padding(
+                        padding: const EdgeInsets.only(right: 20, top: 8, bottom: 8),
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            language.language,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Text(
-                        language.language,
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
+                      Padding(
+                        padding: const EdgeInsets.only(left: 20, top: 8, bottom: 8),
                         child: Theme(
                           data: Theme.of(context).copyWith(
                             dividerColor: Colors.transparent,
@@ -394,49 +390,78 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 32),
-                  // Password Generator Settings
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: colorScheme.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          Icons.vpn_key,
-                          color: colorScheme.primary,
-                          size: 20,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Password Generator Settings',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
                   // Password Length
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 500),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  TableRow(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 20, top: 8, bottom: 8),
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            'Password Length',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 20, top: 8, bottom: 8),
+                        child: Row(
                           children: [
-                            Text(
-                              'Password Length',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
+                            IconButton(
+                              icon: const Icon(Icons.remove, size: 18),
+                              onPressed: () async {
+                                if (_passwordLength > 4) {
+                                  setState(() {
+                                    _passwordLength--;
+                                  });
+                                  await initDatabase();
+                                  await setSetting('password_length', _passwordLength.toString());
+                                }
+                              },
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              tooltip: language.decrease,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Container(
+                                height: 4,
+                                decoration: BoxDecoration(
+                                  color: colorScheme.outline.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                                child: FractionallySizedBox(
+                                  widthFactor: (_passwordLength - 4) / 28,
+                                  alignment: Alignment.centerLeft,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: colorScheme.primary,
+                                      borderRadius: BorderRadius.circular(2),
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
+                            const SizedBox(width: 8),
+                            IconButton(
+                              icon: const Icon(Icons.add, size: 18),
+                              onPressed: () async {
+                                if (_passwordLength < 32) {
+                                  setState(() {
+                                    _passwordLength++;
+                                  });
+                                  await initDatabase();
+                                  await setSetting('password_length', _passwordLength.toString());
+                                }
+                              },
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              tooltip: language.increase,
+                            ),
+                            const SizedBox(width: 12),
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 12,
@@ -457,154 +482,210 @@ class _SettingsPageState extends State<SettingsPage> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
-                        Slider(
-                          value: _passwordLength.toDouble(),
-                          min: 4,
-                          max: 32,
-                          divisions: 28,
-                          onChanged: (double value) {
-                            setState(() {
-                              _passwordLength = value.toInt();
-                            });
-                          },
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 20),
-                  // Character Options
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 500),
-                    child: Column(
-                      children: [
-                        CheckboxListTile(
+                  // Include Letters
+                  TableRow(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 20, top: 8, bottom: 8),
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            language.includeLetters,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 20, top: 8, bottom: 8),
+                        child: CheckboxListTile(
                           contentPadding: EdgeInsets.zero,
                           dense: true,
-                          title: const Text(
-                            'Include Letters (a-z)',
-                            style: TextStyle(fontSize: 12),
+                          title: Text(
+                            language.includeLettersDesc,
+                            style: const TextStyle(fontSize: 12),
                           ),
                           value: _useLetters,
-                          onChanged: (bool? value) {
+                          onChanged: (bool? value) async {
                             setState(() {
                               _useLetters = value ?? true;
                             });
+                            await initDatabase();
+                            await setSetting('password_letters', _useLetters.toString());
                           },
-                        ),
-                        CheckboxListTile(
-                          contentPadding: EdgeInsets.zero,
-                          dense: true,
-                          title: const Text(
-                            'Include Numbers (0-9)',
-                            style: TextStyle(fontSize: 12),
-                          ),
-                          value: _useNumbers,
-                          onChanged: (bool? value) {
-                            setState(() {
-                              _useNumbers = value ?? true;
-                            });
-                          },
-                        ),
-                        CheckboxListTile(
-                          contentPadding: EdgeInsets.zero,
-                          dense: true,
-                          title: const Text(
-                            'Include Special Characters (!@#\$%...)',
-                            style: TextStyle(fontSize: 12),
-                          ),
-                          value: _useSpecialChar,
-                          onChanged: (bool? value) {
-                            setState(() {
-                              _useSpecialChar = value ?? true;
-                            });
-                          },
-                        ),
-                        CheckboxListTile(
-                          contentPadding: EdgeInsets.zero,
-                          dense: true,
-                          title: const Text(
-                            'Include Uppercase Letters (A-Z)',
-                            style: TextStyle(fontSize: 12),
-                          ),
-                          value: _useUppercase,
-                          onChanged: (bool? value) {
-                            setState(() {
-                              _useUppercase = value ?? true;
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  // Save Button
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: ElevatedButton.icon(
-                      onPressed: _saveSettings,
-                      icon: const Icon(Icons.save, size: 18),
-                      label: const Text(
-                        'Save Password Settings',
-                        style: TextStyle(fontSize: 12),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  // Master Password Settings
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: colorScheme.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          Icons.lock,
-                          color: colorScheme.primary,
-                          size: 20,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Master Password',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  // Change Master Password
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 500),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Change Master Password',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
+                  // Include Numbers
+                  TableRow(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 20, top: 8, bottom: 8),
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            language.includeNumbers,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        ConstrainedBox(
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 20, top: 8, bottom: 8),
+                        child: CheckboxListTile(
+                          contentPadding: EdgeInsets.zero,
+                          dense: true,
+                          title: Text(
+                            language.includeNumbersDesc,
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                          value: _useNumbers,
+                          onChanged: (bool? value) async {
+                            setState(() {
+                              _useNumbers = value ?? true;
+                            });
+                            await initDatabase();
+                            await setSetting('password_numbers', _useNumbers.toString());
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  // Include Special Characters
+                  TableRow(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 20, top: 8, bottom: 8),
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            language.specialCharacters,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 20, top: 8, bottom: 8),
+                        child: CheckboxListTile(
+                          contentPadding: EdgeInsets.zero,
+                          dense: true,
+                          title: Text(
+                            language.includeSpecialCharacters,
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                          value: _useSpecialChar,
+                          onChanged: (bool? value) async {
+                            setState(() {
+                              _useSpecialChar = value ?? true;
+                            });
+                            await initDatabase();
+                            await setSetting('password_special_char', _useSpecialChar.toString());
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  // Include Uppercase
+                  TableRow(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 20, top: 8, bottom: 8),
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            language.includeUppercase,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 20, top: 8, bottom: 8),
+                        child: CheckboxListTile(
+                          contentPadding: EdgeInsets.zero,
+                          dense: true,
+                          title: Text(
+                            language.includeUppercaseDesc,
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                          value: _useUppercase,
+                          onChanged: (bool? value) async {
+                            setState(() {
+                              _useUppercase = value ?? true;
+                            });
+                            await initDatabase();
+                            await setSetting('password_uppercase', _useUppercase.toString());
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  // Save Button
+                  TableRow(
+                    children: [
+                      const SizedBox.shrink(),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 20, top: 16, bottom: 8),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: ElevatedButton.icon(
+                            onPressed: _saveSettings,
+                            icon: const Icon(Icons.save, size: 18),
+                            label: Text(
+                              language.savePasswordSettings,
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  // Current Password
+                  TableRow(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 20, top: 8, bottom: 8),
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            language.currentPassword,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 20, top: 8, bottom: 8),
+                        child: ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 400),
                           child: TextField(
-                                controller: _oldPasswordController,
-                                obscureText: !_isOldPasswordVisible,
+                            key: ValueKey('old_password_$_isOldPasswordVisible'),
+                            controller: _oldPasswordController,
+                            obscureText: !_isOldPasswordVisible,
                                 style: const TextStyle(fontSize: 12),
                                 decoration: InputDecoration(
-                                  labelText: 'Current Password',
+                                  labelText: language.currentPasswordField,
                                   labelStyle: const TextStyle(fontSize: 12),
                                   filled: true,
                                   fillColor: colorScheme.surface,
@@ -642,6 +723,8 @@ class _SettingsPageState extends State<SettingsPage> {
                                         _isOldPasswordVisible = !_isOldPasswordVisible;
                                       });
                                     },
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
                                   ),
                                   contentPadding: const EdgeInsets.symmetric(
                                     horizontal: 16,
@@ -650,15 +733,36 @@ class _SettingsPageState extends State<SettingsPage> {
                                 ),
                           ),
                         ),
-                        const SizedBox(height: 12),
-                        ConstrainedBox(
+                      ),
+                    ],
+                  ),
+                  // New Password
+                  TableRow(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 20, top: 8, bottom: 8),
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            language.newPassword,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 20, top: 8, bottom: 8),
+                        child: ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 400),
                           child: TextField(
+                            key: ValueKey('new_password_$_isNewPasswordVisible'),
                             controller: _newPasswordController,
-                                obscureText: !_isNewPasswordVisible,
-                                style: const TextStyle(fontSize: 12),
+                            obscureText: !_isNewPasswordVisible,
+                            style: const TextStyle(fontSize: 12),
                             decoration: InputDecoration(
-                              labelText: 'New Password',
+                              labelText: language.newPasswordField,
                               labelStyle: const TextStyle(fontSize: 12),
                               filled: true,
                               fillColor: colorScheme.surface,
@@ -696,6 +800,8 @@ class _SettingsPageState extends State<SettingsPage> {
                                     _isNewPasswordVisible = !_isNewPasswordVisible;
                                   });
                                 },
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
                               ),
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16,
@@ -704,15 +810,36 @@ class _SettingsPageState extends State<SettingsPage> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 12),
-                        ConstrainedBox(
+                      ),
+                    ],
+                  ),
+                  // Confirm Password
+                  TableRow(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 20, top: 8, bottom: 8),
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            language.confirmPasswordField,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 20, top: 8, bottom: 8),
+                        child: ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 400),
                           child: TextField(
+                            key: ValueKey('confirm_password_$_isConfirmPasswordVisible'),
                             controller: _confirmPasswordController,
                             obscureText: !_isConfirmPasswordVisible,
                             style: const TextStyle(fontSize: 12),
                             decoration: InputDecoration(
-                              labelText: 'Confirm New Password',
+                              labelText: language.confirmNewPassword,
                               labelStyle: const TextStyle(fontSize: 12),
                               filled: true,
                               fillColor: colorScheme.surface,
@@ -750,6 +877,8 @@ class _SettingsPageState extends State<SettingsPage> {
                                     _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
                                   });
                                 },
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
                               ),
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16,
@@ -758,8 +887,16 @@ class _SettingsPageState extends State<SettingsPage> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        Align(
+                      ),
+                    ],
+                  ),
+                  // Change Master Password Button
+                  TableRow(
+                    children: [
+                      const SizedBox.shrink(),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 20, top: 16, bottom: 8),
+                        child: Align(
                           alignment: Alignment.centerLeft,
                           child: ElevatedButton.icon(
                             onPressed: _isChangingPassword ? null : _changeMasterPassword,
@@ -771,7 +908,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                   )
                                 : const Icon(Icons.lock_reset, size: 18),
                             label: Text(
-                              _isChangingPassword ? 'Changing...' : 'Change Master Password',
+                              _isChangingPassword ? language.changing : language.changeMasterPassword,
                               style: const TextStyle(fontSize: 12),
                             ),
                             style: ElevatedButton.styleFrom(
@@ -782,172 +919,37 @@ class _SettingsPageState extends State<SettingsPage> {
                             ),
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  // Master Phrase (Hint)
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: colorScheme.secondary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          Icons.lightbulb_outline,
-                          color: colorScheme.secondary,
-                          size: 20,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Master Phrase (Hint)',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Set a phrase to help you remember your master password',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: colorScheme.onSurface.withOpacity(0.6),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 400),
-                              child: TextField(
-                                controller: _masterPhraseController,
-                                maxLines: 2,
-                                style: const TextStyle(fontSize: 12),
-                                decoration: InputDecoration(
-                                  labelText: 'Master Phrase',
-                                  labelStyle: const TextStyle(fontSize: 12),
-                                  hintText: 'Enter a hint phrase to remember your password',
-                                  hintStyle: const TextStyle(fontSize: 12),
-                                  filled: true,
-                                  fillColor: colorScheme.surface,
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(
-                                      color: colorScheme.outline.withOpacity(0.2),
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(
-                                      color: colorScheme.secondary,
-                                      width: 2,
-                                    ),
-                                  ),
-                                  prefixIcon: Icon(
-                                    Icons.lightbulb_outline,
-                                    color: colorScheme.secondary,
-                                    size: 20,
-                                  ),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 14,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: ElevatedButton.icon(
-                                onPressed: _saveMasterPhrase,
-                                icon: const Icon(Icons.save, size: 18),
-                                label: const Text(
-                                  'Save Master Phrase',
-                                  style: TextStyle(fontSize: 12),
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: colorScheme.secondaryContainer,
-                                  foregroundColor: colorScheme.onSecondaryContainer,
-                                  padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 32),
-                  // Crypto String Settings
-                  Row(
+                  // Master Phrase
+                  TableRow(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: colorScheme.tertiary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          Icons.vpn_key,
-                          color: colorScheme.tertiary,
-                          size: 20,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Encryption Key',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 500),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Change Encryption Key',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
+                      Padding(
+                        padding: const EdgeInsets.only(right: 20, top: 8, bottom: 8),
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            language.masterPhrase,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Warning: Changing the encryption key will re-encrypt all your data. This process may take a moment.',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: colorScheme.error.withOpacity(0.8),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        ConstrainedBox(
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 20, top: 8, bottom: 8),
+                        child: ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 400),
                           child: TextField(
-                            controller: _cryptoStringController,
-                            obscureText: !_isCryptoStringVisible,
+                            controller: _masterPhraseController,
+                            maxLines: 2,
                             style: const TextStyle(fontSize: 12),
                             decoration: InputDecoration(
-                              labelText: 'Encryption Key',
+                              labelText: language.masterPhraseField,
                               labelStyle: const TextStyle(fontSize: 12),
-                              hintText: 'Enter at least 8 characters',
+                              hintText: language.masterPhraseHint,
                               hintStyle: const TextStyle(fontSize: 12),
                               filled: true,
                               fillColor: colorScheme.surface,
@@ -964,27 +966,14 @@ class _SettingsPageState extends State<SettingsPage> {
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide(
-                                  color: colorScheme.tertiary,
+                                  color: colorScheme.secondary,
                                   width: 2,
                                 ),
                               ),
                               prefixIcon: Icon(
-                                Icons.vpn_key,
-                                color: colorScheme.tertiary,
+                                Icons.lightbulb_outline,
+                                color: colorScheme.secondary,
                                 size: 20,
-                              ),
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _isCryptoStringVisible
-                                      ? Icons.visibility_outlined
-                                      : Icons.visibility_off_outlined,
-                                  size: 20,
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    _isCryptoStringVisible = !_isCryptoStringVisible;
-                                  });
-                                },
                               ),
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16,
@@ -993,25 +982,27 @@ class _SettingsPageState extends State<SettingsPage> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        Align(
+                      ),
+                    ],
+                  ),
+                  // Save Master Phrase Button
+                  TableRow(
+                    children: [
+                      const SizedBox.shrink(),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 20, top: 8, bottom: 8),
+                        child: Align(
                           alignment: Alignment.centerLeft,
                           child: ElevatedButton.icon(
-                            onPressed: _isChangingCryptoString ? null : _changeCryptoString,
-                            icon: _isChangingCryptoString
-                                ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
-                                  )
-                                : const Icon(Icons.vpn_key, size: 18),
+                            onPressed: _saveMasterPhrase,
+                            icon: const Icon(Icons.save, size: 18),
                             label: Text(
-                              _isChangingCryptoString ? 'Re-encrypting...' : 'Change Encryption Key',
+                              language.saveMasterPhrase,
                               style: const TextStyle(fontSize: 12),
                             ),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: colorScheme.tertiaryContainer,
-                              foregroundColor: colorScheme.onTertiaryContainer,
+                              backgroundColor: colorScheme.secondaryContainer,
+                              foregroundColor: colorScheme.onSecondaryContainer,
                               padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -1019,300 +1010,444 @@ class _SettingsPageState extends State<SettingsPage> {
                             ),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 32),
-                  // Database Actions
-                  Row(
+                  // Encryption Key
+                  TableRow(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: colorScheme.errorContainer.withOpacity(0.3),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          Icons.storage,
-                          color: colorScheme.error,
-                          size: 20,
+                      Padding(
+                        padding: const EdgeInsets.only(right: 20, top: 8, bottom: 8),
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                language.encryptionKey,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                language.encryptionKeyWarning,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: colorScheme.error.withOpacity(0.8),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Database',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
+                      Padding(
+                        padding: const EdgeInsets.only(left: 20, top: 8, bottom: 8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 400),
+                              child: TextField(
+                                key: ValueKey('crypto_string_$_isCryptoStringVisible'),
+                                controller: _cryptoStringController,
+                                obscureText: !_isCryptoStringVisible,
+                                style: const TextStyle(fontSize: 12),
+                                decoration: InputDecoration(
+                                  labelText: language.encryptionKeyField,
+                                  labelStyle: const TextStyle(fontSize: 12),
+                                  hintText: language.encryptionKeyHint,
+                                  hintStyle: const TextStyle(fontSize: 12),
+                                  filled: true,
+                                  fillColor: colorScheme.surface,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(
+                                      color: colorScheme.outline.withOpacity(0.2),
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(
+                                      color: colorScheme.tertiary,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  prefixIcon: Icon(
+                                    Icons.vpn_key,
+                                    color: colorScheme.tertiary,
+                                    size: 20,
+                                  ),
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      _isCryptoStringVisible
+                                          ? Icons.visibility_outlined
+                                          : Icons.visibility_off_outlined,
+                                      size: 20,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        _isCryptoStringVisible = !_isCryptoStringVisible;
+                                      });
+                                    },
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 14,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: ElevatedButton.icon(
+                                onPressed: _isChangingCryptoString ? null : _changeCryptoString,
+                                icon: _isChangingCryptoString
+                                    ? const SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(strokeWidth: 2),
+                                      )
+                                    : const Icon(Icons.vpn_key, size: 18),
+                                label: Text(
+                                  _isChangingCryptoString ? language.reEncrypting : language.changeEncryptionKey,
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: colorScheme.tertiaryContainer,
+                                  foregroundColor: colorScheme.onTertiaryContainer,
+                                  padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  Row(
+                  // Database Actions
+                  TableRow(
                     children: [
-                      OutlinedButton.icon(
-                        onPressed: _isExporting ? null : () async {
-                          // Show immediate feedback
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Opening file picker...'),
-                                duration: Duration(seconds: 1),
-                              ),
-                            );
-                          }
-                          
-                          setState(() {
-                            _isExporting = true;
-                          });
-                          
-                          try {
-                            print('Opening file picker...');
-                            
-                            // Ensure window is focused and brought to front
-                            await windowManager.show();
-                            await windowManager.focus();
-                            
-                            // Small delay to ensure window is active
-                            await Future.delayed(const Duration(milliseconds: 300));
-                            
-                            // Show file picker dialog to choose save location
-                            // On macOS, the dialog might need to be modal
-                            String? outputPath = await FilePicker.platform.saveFile(
-                              dialogTitle: 'Export Database',
-                              fileName: 'dataExport.db',
-                              type: FileType.any,
-                            );
-
-                            print('File picker returned: $outputPath');
-
-                            if (outputPath != null && outputPath.isNotEmpty) {
-                              print('Exporting database to: $outputPath');
-                              await exportDatabase(exportPath: outputPath);
-                              if (mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Database exported to: $outputPath'),
-                                    backgroundColor: Colors.green,
-                                    duration: const Duration(seconds: 3),
-                                  ),
-                                );
-                              }
-                            } else {
-                              print('File picker was cancelled or returned null');
-                              // File picker might not be working - show info message
-                              if (mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('File picker dialog did not open. Please ensure the app has file access permissions and was rebuilt after adding entitlements.'),
-                                    backgroundColor: Colors.orange,
-                                    duration: Duration(seconds: 4),
-                                  ),
-                                );
-                              }
-                            }
-                          } catch (e, stackTrace) {
-                            print('FilePicker error: $e');
-                            print('Stack trace: $stackTrace');
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Error: ${e.toString()}'),
-                                  backgroundColor: Colors.red,
-                                  duration: const Duration(seconds: 3),
-                                ),
-                              );
-                            }
-                          } finally {
-                            if (mounted) {
-                              setState(() {
-                                _isExporting = false;
-                              });
-                            }
-                          }
-                        },
-                        icon: _isExporting
-                            ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : const Icon(Icons.download, size: 18),
-                        label: Text(
-                          _isExporting ? 'Exporting...' : 'Export Database',
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: colorScheme.primary,
-                          side: BorderSide(color: colorScheme.primary.withOpacity(0.5)),
-                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                      Padding(
+                        padding: const EdgeInsets.only(right: 20, top: 8, bottom: 8),
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            'Database',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      OutlinedButton.icon(
-                        onPressed: _isImporting ? null : () async {
-                          // Show immediate feedback
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Opening file picker...'),
-                                duration: Duration(seconds: 1),
-                              ),
-                            );
-                          }
-                          
-                          setState(() {
-                            _isImporting = true;
-                          });
-                          
-                          try {
-                            print('Opening file picker for import...');
-                            
-                            // Ensure window is focused and brought to front
-                            await windowManager.show();
-                            await windowManager.focus();
-                            
-                            // Small delay to ensure window is active
-                            await Future.delayed(const Duration(milliseconds: 300));
-                            
-                            // Show file picker dialog to choose database file
-                            FilePickerResult? result = await FilePicker.platform.pickFiles(
-                              dialogTitle: 'Import Database',
-                              type: FileType.custom,
-                              allowedExtensions: ['db'],
-                            );
-
-                            print('File picker returned: ${result?.files.single.path}');
-
-                            if (result != null && result.files.single.path != null) {
-                              final importPath = result.files.single.path!;
-                              print('Importing database from: $importPath');
-                              
-                              // Confirm import with user
-                              final confirmed = await showDialog<bool>(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    title: const Text('Import Database?'),
-                                    content: const Text(
-                                      'This will replace your current database with the imported one. Your current database will be backed up. Are you sure you want to continue?',
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.of(context).pop(false),
-                                        child: const Text('Cancel'),
-                                      ),
-                                      ElevatedButton(
-                                        onPressed: () => Navigator.of(context).pop(true),
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Theme.of(context).colorScheme.primary,
-                                          foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                                        ),
-                                        child: const Text('Import'),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                              
-                              if (confirmed == true) {
-                                await importDatabase(importPath);
+                      Padding(
+                        padding: const EdgeInsets.only(left: 20, top: 8, bottom: 8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            OutlinedButton.icon(
+                              onPressed: _isExporting ? null : () async {
+                                // Show immediate feedback
                                 if (mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                      content: Text('Database imported successfully'),
-                                      backgroundColor: Colors.green,
-                                      duration: Duration(seconds: 2),
+                                      content: Text('Opening file picker...'),
+                                      duration: Duration(seconds: 1),
                                     ),
-                                  );
-                                  // Navigate to master password page since imported DB might have different master password
-                                  Navigator.of(context).pushAndRemoveUntil(
-                                    MaterialPageRoute(
-                                      builder: (context) => const MasterPasswordPage(),
-                                    ),
-                                    (route) => false,
                                   );
                                 }
-                              }
-                            } else {
-                              print('File picker was cancelled or returned null');
-                            }
-                          } catch (e, stackTrace) {
-                            print('Import error: $e');
-                            print('Stack trace: $stackTrace');
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Error importing database: ${e.toString()}'),
-                                  backgroundColor: Colors.red,
-                                  duration: const Duration(seconds: 3),
+                                
+                                setState(() {
+                                  _isExporting = true;
+                                });
+                                
+                                try {
+                                  print('Opening file picker...');
+                                  
+                                  // Ensure window is focused and brought to front
+                                  await windowManager.show();
+                                  await windowManager.focus();
+                                  
+                                  // Small delay to ensure window is active
+                                  await Future.delayed(const Duration(milliseconds: 300));
+                                  
+                                  // Show file picker dialog to choose save location
+                                  // On macOS, the dialog might need to be modal
+                                  String? outputPath = await FilePicker.platform.saveFile(
+                                    dialogTitle: language.exportDatabase,
+                                    fileName: 'dataExport.db',
+                                    type: FileType.any,
+                                  );
+
+                                  print('File picker returned: $outputPath');
+
+                                  if (outputPath != null && outputPath.isNotEmpty) {
+                                    print('Exporting database to: $outputPath');
+                                    await exportDatabase(exportPath: outputPath);
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('${language.databaseExportedTo}: $outputPath'),
+                                          backgroundColor: Colors.green,
+                                          duration: const Duration(seconds: 3),
+                                        ),
+                                      );
+                                    }
+                                  } else {
+                                    print('File picker was cancelled or returned null');
+                                    // File picker might not be working - show info message
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(language.filePickerPermissionError),
+                                          backgroundColor: Colors.orange,
+                                          duration: const Duration(seconds: 4),
+                                        ),
+                                      );
+                                    }
+                                  }
+                                } catch (e, stackTrace) {
+                                  print('FilePicker error: $e');
+                                  print('Stack trace: $stackTrace');
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Error: ${e.toString()}'),
+                                        backgroundColor: Colors.red,
+                                        duration: const Duration(seconds: 3),
+                                      ),
+                                    );
+                                  }
+                                } finally {
+                                  if (mounted) {
+                                    setState(() {
+                                      _isExporting = false;
+                                    });
+                                  }
+                                }
+                              },
+                              icon: _isExporting
+                                  ? const SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    )
+                                  : const Icon(Icons.download, size: 18),
+                              label: Text(
+                                _isExporting ? language.exporting : language.exportDatabase,
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: colorScheme.primary,
+                                side: BorderSide(color: colorScheme.primary.withOpacity(0.5)),
+                                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                              );
-                            }
-                          } finally {
-                            if (mounted) {
-                              setState(() {
-                                _isImporting = false;
-                              });
-                            }
-                          }
-                        },
-                        icon: _isImporting
-                            ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : const Icon(Icons.upload, size: 18),
-                        label: Text(
-                          _isImporting ? 'Importing...' : 'Import Database',
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: colorScheme.secondary,
-                          side: BorderSide(color: colorScheme.secondary.withOpacity(0.5)),
-                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      OutlinedButton.icon(
-                        onPressed: () async {
-                          await deleteDB();
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Database deleted'),
-                                duration: Duration(seconds: 1),
                               ),
-                            );
-                            // Navigate to master password page and clear navigation stack
-                            Navigator.of(context).pushAndRemoveUntil(
-                              MaterialPageRoute(
-                                builder: (context) => const MasterPasswordPage(),
+                            ),
+                            const SizedBox(height: 12),
+                            OutlinedButton.icon(
+                              onPressed: _isImporting ? null : () async {
+                                // Show immediate feedback
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Opening file picker...'),
+                                      duration: Duration(seconds: 1),
+                                    ),
+                                  );
+                                }
+                                
+                                setState(() {
+                                  _isImporting = true;
+                                });
+                                
+                                try {
+                                  print('Opening file picker for import...');
+                                  
+                                  // Ensure window is focused and brought to front
+                                  await windowManager.show();
+                                  await windowManager.focus();
+                                  
+                                  // Small delay to ensure window is active
+                                  await Future.delayed(const Duration(milliseconds: 300));
+                                  
+                                  // Show file picker dialog to choose database file
+                                  FilePickerResult? result = await FilePicker.platform.pickFiles(
+                                    dialogTitle: language.importDatabase,
+                                    type: FileType.custom,
+                                    allowedExtensions: ['db'],
+                                  );
+
+                                  print('File picker returned: ${result?.files.single.path}');
+
+                                  if (result != null && result.files.single.path != null) {
+                                    final importPath = result.files.single.path!;
+                                    print('Importing database from: $importPath');
+                                    
+                                    // Confirm import with user
+                                    final confirmed = await showDialog<bool>(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return AlertDialog(
+                                          title: Text(language.importDatabaseQuestion),
+                                          content: Text(language.importDatabaseWarning),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () => Navigator.of(context).pop(false),
+                                              child: Text(language.cancel),
+                                            ),
+                                            ElevatedButton(
+                                              onPressed: () => Navigator.of(context).pop(true),
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: Theme.of(context).colorScheme.primary,
+                                                foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                                              ),
+                                              child: Text(language.importDatabase),
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+                                    
+                                    if (confirmed == true) {
+                                      await importDatabase(importPath);
+                                      if (mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text(language.databaseImportedSuccessfully),
+                                            backgroundColor: Colors.green,
+                                            duration: const Duration(seconds: 2),
+                                          ),
+                                        );
+                                        // Navigate to master password page since imported DB might have different master password
+                                        Navigator.of(context).pushAndRemoveUntil(
+                                          MaterialPageRoute(
+                                            builder: (context) => const MasterPasswordPage(),
+                                          ),
+                                          (route) => false,
+                                        );
+                                      }
+                                    }
+                                  } else {
+                                    print('File picker was cancelled or returned null');
+                                  }
+                                } catch (e, stackTrace) {
+                                  print('Import error: $e');
+                                  print('Stack trace: $stackTrace');
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('${language.errorImportingDatabase}: ${e.toString()}'),
+                                        backgroundColor: Colors.red,
+                                        duration: const Duration(seconds: 3),
+                                      ),
+                                    );
+                                  }
+                                } finally {
+                                  if (mounted) {
+                                    setState(() {
+                                      _isImporting = false;
+                                    });
+                                  }
+                                }
+                              },
+                              icon: _isImporting
+                                  ? const SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    )
+                                  : const Icon(Icons.upload, size: 18),
+                              label: Text(
+                                _isImporting ? language.importing : language.importDatabase,
+                                style: const TextStyle(fontSize: 12),
                               ),
-                              (route) => false,
-                            );
-                          }
-                        },
-                        icon: const Icon(Icons.delete_outline, size: 18),
-                        label: Text(
-                          language.deleteDatabase,
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: colorScheme.error,
-                          side: BorderSide(color: colorScheme.error.withOpacity(0.5)),
-                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: colorScheme.secondary,
+                                side: BorderSide(color: colorScheme.secondary.withOpacity(0.5)),
+                                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            OutlinedButton.icon(
+                              onPressed: () async {
+                                // Show confirmation dialog
+                                final confirmed = await showDialog<bool>(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: Text(language.deleteDatabaseQuestion),
+                                      content: Text(language.deleteDatabaseWarning),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.of(context).pop(false),
+                                          child: Text(language.cancel),
+                                        ),
+                                        ElevatedButton(
+                                          onPressed: () => Navigator.of(context).pop(true),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Theme.of(context).colorScheme.error,
+                                            foregroundColor: Theme.of(context).colorScheme.onError,
+                                          ),
+                                          child: Text(language.delete),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+
+                                if (confirmed == true) {
+                                  await deleteDB();
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(language.databaseDeleted),
+                                        duration: const Duration(seconds: 1),
+                                      ),
+                                    );
+                                    // Navigate to welcome page and clear navigation stack
+                                    Navigator.of(context).pushAndRemoveUntil(
+                                      MaterialPageRoute(
+                                        builder: (context) => const WelcomePage(),
+                                      ),
+                                      (route) => false,
+                                    );
+                                  }
+                                }
+                              },
+                              icon: const Icon(Icons.delete_outline, size: 18),
+                              label: Text(
+                                language.deleteDatabase,
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: colorScheme.error,
+                                side: BorderSide(color: colorScheme.error.withOpacity(0.5)),
+                                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],

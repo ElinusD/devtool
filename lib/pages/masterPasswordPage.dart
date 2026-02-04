@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:devtool/utils/db.dart';
 import 'package:devtool/main.dart';
+import 'package:devtool/locale/Languages.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:window_manager/window_manager.dart';
 
 class MasterPasswordPage extends StatefulWidget {
-  const MasterPasswordPage({super.key});
+  final bool createNewDB;
+  
+  const MasterPasswordPage({super.key, this.createNewDB = false});
 
   @override
   _MasterPasswordPageState createState() => _MasterPasswordPageState();
@@ -19,6 +24,8 @@ class _MasterPasswordPageState extends State<MasterPasswordPage> {
   bool _isCreating = false;
   String? _errorMessage;
   String? _masterPhrase;
+  bool _isImporting = false;
+  bool _showChoice = false; // Show choice between create password or import
 
   @override
   void initState() {
@@ -28,12 +35,44 @@ class _MasterPasswordPageState extends State<MasterPasswordPage> {
 
   Future<void> _checkMasterPassword() async {
     await initDatabase();
+    
+    // If coming from welcome page to create new DB, skip all checks
+    if (widget.createNewDB) {
+      setState(() {
+        _isCreating = true;
+        _showChoice = false;
+      });
+      return;
+    }
+    
     final hasPassword = await hasMasterPassword();
     final phrase = await getMasterPhrase();
     setState(() {
-      _isCreating = !hasPassword;
-      _masterPhrase = phrase;
+      if (!hasPassword) {
+        // Check if database is empty
+        _checkIfDatabaseEmpty();
+      } else {
+        _isCreating = false;
+        _showChoice = false;
+        _masterPhrase = phrase;
+      }
     });
+  }
+
+  Future<void> _checkIfDatabaseEmpty() async {
+    try {
+      final passwords = await getPasswords();
+      setState(() {
+        _showChoice = passwords.isEmpty;
+        _isCreating = !_showChoice; // If DB has data but no master password, go straight to create
+      });
+    } catch (e) {
+      // If error, assume empty and show choice
+      setState(() {
+        _showChoice = true;
+        _isCreating = false;
+      });
+    }
   }
 
   Future<void> _createMasterPassword() async {
@@ -42,15 +81,17 @@ class _MasterPasswordPageState extends State<MasterPasswordPage> {
     }
 
     if (_passwordController.text != _confirmPasswordController.text) {
+      final language = BaseLanguage.of(context);
       setState(() {
-        _errorMessage = 'Passwords do not match';
+        _errorMessage = language.passwordsDoNotMatch;
       });
       return;
     }
 
     if (_passwordController.text.length < 4) {
+      final language = BaseLanguage.of(context);
       setState(() {
-        _errorMessage = 'Password must be at least 4 characters';
+        _errorMessage = language.passwordMinLength;
       });
       return;
     }
@@ -70,8 +111,9 @@ class _MasterPasswordPageState extends State<MasterPasswordPage> {
         );
       }
     } catch (e) {
+      final language = BaseLanguage.of(context);
       setState(() {
-        _errorMessage = 'Error creating master password: $e';
+        _errorMessage = '${language.errorCreatingMasterPassword}: $e';
         _isLoading = false;
       });
     }
@@ -98,16 +140,105 @@ class _MasterPasswordPageState extends State<MasterPasswordPage> {
           );
         }
       } else {
+        final language = BaseLanguage.of(context);
         setState(() {
-          _errorMessage = 'Incorrect master password';
+          _errorMessage = language.incorrectMasterPassword;
           _isLoading = false;
         });
       }
     } catch (e) {
+      final language = BaseLanguage.of(context);
       setState(() {
-        _errorMessage = 'Error verifying password: $e';
+        _errorMessage = '${language.errorVerifyingPassword}: $e';
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _importDatabase() async {
+    setState(() {
+      _isImporting = true;
+    });
+
+    try {
+      // Ensure window is focused
+      await windowManager.show();
+      await windowManager.focus();
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      // Show file picker dialog to choose database file
+      final language = BaseLanguage.of(context);
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        dialogTitle: language.importDatabase,
+        type: FileType.custom,
+        allowedExtensions: ['db'],
+      );
+
+      if (result != null && result.files.single.path != null) {
+        final importPath = result.files.single.path!;
+        
+        // Confirm import with user
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (BuildContext context) {
+            final language = BaseLanguage.of(context);
+            return AlertDialog(
+              title: Text(language.importDatabaseQuestion),
+              content: Text(language.importDatabaseWarning),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: Text(language.cancel),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                  ),
+                  child: Text(language.importDatabase),
+                ),
+              ],
+            );
+          },
+        );
+
+        if (confirmed == true) {
+          await importDatabase(importPath);
+          if (mounted) {
+            final language = BaseLanguage.of(context);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(language.databaseImportedSuccessfully),
+                backgroundColor: Colors.green,
+                duration: const Duration(seconds: 2),
+              ),
+            );
+            // Reload master phrase in case imported DB has different one
+            final phrase = await getMasterPhrase();
+            setState(() {
+              _masterPhrase = phrase;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        final language = BaseLanguage.of(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${language.errorImportingDatabase}: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isImporting = false;
+        });
+      }
     }
   }
 
@@ -122,6 +253,7 @@ class _MasterPasswordPageState extends State<MasterPasswordPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final language = BaseLanguage.of(context);
     
     return Scaffold(
       body: Container(
@@ -177,7 +309,9 @@ class _MasterPasswordPageState extends State<MasterPasswordPage> {
                               ],
                             ),
                             child: Icon(
-                              _isCreating ? Icons.lock_person : Icons.lock,
+                              _showChoice
+                                  ? Icons.storage
+                                  : (_isCreating ? Icons.lock_person : Icons.lock),
                               size: 50,
                               color: Colors.white,
                             ),
@@ -185,7 +319,9 @@ class _MasterPasswordPageState extends State<MasterPasswordPage> {
                           const SizedBox(height: 32),
                           // Title
                           Text(
-                            _isCreating ? 'Create Master Password' : 'Welcome Back',
+                            _showChoice
+                                ? language.welcome
+                                : (_isCreating ? language.createMasterPassword : language.welcomeBack),
                             style: theme.textTheme.headlineSmall?.copyWith(
                               fontWeight: FontWeight.bold,
                               letterSpacing: -0.5,
@@ -194,16 +330,103 @@ class _MasterPasswordPageState extends State<MasterPasswordPage> {
                           const SizedBox(height: 12),
                           // Subtitle
                           Text(
-                            _isCreating
-                                ? 'Secure your data with a master password'
-                                : 'Enter your master password to continue',
+                            _showChoice
+                                ? language.chooseHowToProceed
+                                : (_isCreating
+                                    ? language.secureYourData
+                                    : language.enterMasterPassword),
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: colorScheme.onSurface.withOpacity(0.6),
                             ),
                             textAlign: TextAlign.center,
                           ),
+                          // Choice buttons (when no master password and empty DB)
+                          if (_showChoice) ...[
+                            const SizedBox(height: 32),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 56,
+                              child: ElevatedButton.icon(
+                                onPressed: _isImporting ? null : () async {
+                                  await _importDatabase();
+                                  if (mounted && !_isImporting) {
+                                    // After import, check if master password was created
+                                    final hasPassword = await hasMasterPassword();
+                                    final phrase = await getMasterPhrase();
+                                    if (hasPassword) {
+                                      // Imported DB has master password, go to login
+                                      setState(() {
+                                        _showChoice = false;
+                                        _isCreating = false;
+                                        _masterPhrase = phrase;
+                                      });
+                                    } else {
+                                      // Imported DB has no master password, create one
+                                      setState(() {
+                                        _showChoice = false;
+                                        _isCreating = true;
+                                      });
+                                    }
+                                  }
+                                },
+                                icon: _isImporting
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                        ),
+                                      )
+                                    : const Icon(Icons.upload, size: 20),
+                                label: Text(
+                                  _isImporting ? 'Importing...' : 'Import Database',
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    color: colorScheme.onPrimary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: colorScheme.secondary,
+                                  foregroundColor: colorScheme.onSecondary,
+                                  elevation: 2,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 56,
+                              child: OutlinedButton.icon(
+                                onPressed: () {
+                                  setState(() {
+                                    _showChoice = false;
+                                    _isCreating = true;
+                                  });
+                                },
+                                icon: const Icon(Icons.lock_person, size: 20),
+                                label: Text(
+                                  language.createMasterPassword,
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  side: BorderSide(color: colorScheme.primary, width: 2),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                ),
+                              ),
+                            ),
+                          ],
                           // Master phrase hint
-                          if (!_isCreating && _masterPhrase != null && _masterPhrase!.isNotEmpty) ...[
+                          if (!_showChoice && !_isCreating && _masterPhrase != null && _masterPhrase!.isNotEmpty) ...[
                             const SizedBox(height: 24),
                             Container(
                               padding: const EdgeInsets.all(16),
@@ -256,95 +479,25 @@ class _MasterPasswordPageState extends State<MasterPasswordPage> {
                               ),
                             ),
                           ],
-                          const SizedBox(height: 32),
-                          // Password field
-                          TextFormField(
-                            controller: _passwordController,
-                            obscureText: _isObscure,
-                            enabled: !_isLoading,
-                            autofocus: true,
-                            textInputAction: _isCreating ? TextInputAction.next : TextInputAction.done,
-                            onFieldSubmitted: (value) {
-                              if (!_isCreating && !_isLoading) {
-                                _verifyMasterPassword();
-                              }
-                            },
-                            style: theme.textTheme.bodyLarge,
-                            decoration: InputDecoration(
-                              labelText: 'Password',
-                              hintText: 'Enter your password',
-                              filled: true,
-                              fillColor: colorScheme.surfaceContainerHighest.withOpacity(0.5),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: BorderSide.none,
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: BorderSide(
-                                  color: colorScheme.outline.withOpacity(0.2),
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: BorderSide(
-                                  color: colorScheme.primary,
-                                  width: 2,
-                                ),
-                              ),
-                              errorBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: BorderSide(
-                                  color: colorScheme.error,
-                                ),
-                              ),
-                              prefixIcon: Icon(
-                                Icons.lock_outline,
-                                color: colorScheme.primary,
-                              ),
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _isObscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                                  color: colorScheme.onSurface.withOpacity(0.6),
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    _isObscure = !_isObscure;
-                                  });
-                                },
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 18,
-                              ),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter a password';
-                              }
-                              if (_isCreating && value.length < 4) {
-                                return 'Password must be at least 4 characters';
-                              }
-                              return null;
-                            },
-                          ),
-                          // Confirm password field
-                          if (_isCreating) ...[
-                            const SizedBox(height: 20),
+                          // Password fields (only show when creating or logging in)
+                          if (!_showChoice) ...[
+                            const SizedBox(height: 32),
+                            // Password field
                             TextFormField(
-                              controller: _confirmPasswordController,
-                              obscureText: _isConfirmObscure,
+                              controller: _passwordController,
+                              obscureText: _isObscure,
                               enabled: !_isLoading,
-                              textInputAction: TextInputAction.done,
+                              autofocus: true,
+                              textInputAction: _isCreating ? TextInputAction.next : TextInputAction.done,
                               onFieldSubmitted: (value) {
-                                if (!_isLoading) {
-                                  _createMasterPassword();
+                                if (!_isCreating && !_isLoading) {
+                                  _verifyMasterPassword();
                                 }
                               },
                               style: theme.textTheme.bodyLarge,
                               decoration: InputDecoration(
-                                labelText: 'Confirm Password',
-                                hintText: 'Confirm your password',
+                                labelText: language.passwordField,
+                                hintText: language.enterPassword,
                                 filled: true,
                                 fillColor: colorScheme.surfaceContainerHighest.withOpacity(0.5),
                                 border: OutlineInputBorder(
@@ -376,14 +529,12 @@ class _MasterPasswordPageState extends State<MasterPasswordPage> {
                                 ),
                                 suffixIcon: IconButton(
                                   icon: Icon(
-                                    _isConfirmObscure
-                                        ? Icons.visibility_outlined
-                                        : Icons.visibility_off_outlined,
+                                    _isObscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
                                     color: colorScheme.onSurface.withOpacity(0.6),
                                   ),
                                   onPressed: () {
                                     setState(() {
-                                      _isConfirmObscure = !_isConfirmObscure;
+                                      _isObscure = !_isObscure;
                                     });
                                   },
                                 ),
@@ -394,17 +545,92 @@ class _MasterPasswordPageState extends State<MasterPasswordPage> {
                               ),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Please confirm your password';
+                                  return language.pleaseEnterPassword;
                                 }
-                                if (value != _passwordController.text) {
-                                  return 'Passwords do not match';
+                                if (_isCreating && value.length < 4) {
+                                  return language.passwordMinLength;
                                 }
                                 return null;
                               },
                             ),
+                            // Confirm password field
+                            if (_isCreating) ...[
+                              const SizedBox(height: 20),
+                              TextFormField(
+                                controller: _confirmPasswordController,
+                                obscureText: _isConfirmObscure,
+                                enabled: !_isLoading,
+                                textInputAction: TextInputAction.done,
+                                onFieldSubmitted: (value) {
+                                  if (!_isLoading) {
+                                    _createMasterPassword();
+                                  }
+                                },
+                                style: theme.textTheme.bodyLarge,
+                                decoration: InputDecoration(
+                                  labelText: language.confirmPasswordField,
+                                  hintText: language.confirmPasswordHint,
+                                  filled: true,
+                                  fillColor: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    borderSide: BorderSide(
+                                      color: colorScheme.outline.withOpacity(0.2),
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    borderSide: BorderSide(
+                                      color: colorScheme.primary,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  errorBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    borderSide: BorderSide(
+                                      color: colorScheme.error,
+                                    ),
+                                  ),
+                                  prefixIcon: Icon(
+                                    Icons.lock_outline,
+                                    color: colorScheme.primary,
+                                  ),
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      _isConfirmObscure
+                                          ? Icons.visibility_outlined
+                                          : Icons.visibility_off_outlined,
+                                      color: colorScheme.onSurface.withOpacity(0.6),
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        _isConfirmObscure = !_isConfirmObscure;
+                                      });
+                                    },
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 18,
+                                  ),
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return language.pleaseConfirmPassword;
+                                  }
+                                  if (value != _passwordController.text) {
+                                    return language.passwordsDoNotMatch;
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ],
                           ],
                           // Error message
-                          if (_errorMessage != null) ...[
+                          if (!_showChoice && _errorMessage != null) ...[
                             const SizedBox(height: 20),
                             Container(
                               padding: const EdgeInsets.all(16),
@@ -435,15 +661,79 @@ class _MasterPasswordPageState extends State<MasterPasswordPage> {
                               ),
                             ),
                           ],
+                          // Import button (only show when not creating and not importing)
+                          if (!_showChoice && !_isCreating && _isImporting) ...[
+                            const SizedBox(height: 20),
+                            const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              language.importingDatabase,
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          ],
                           const SizedBox(height: 32),
-                          // Submit button
-                          SizedBox(
-                            width: double.infinity,
-                            height: 56,
-                            child: ElevatedButton(
-                              onPressed: _isLoading
-                                  ? null
-                                  : (_isCreating ? _createMasterPassword : _verifyMasterPassword),
+                          // Import DB option (show when creating new master password, but not when creating new DB from welcome page)
+                          if (_isCreating && !_showChoice && !widget.createNewDB) ...[
+                            SizedBox(
+                              width: double.infinity,
+                              height: 56,
+                              child: OutlinedButton.icon(
+                                onPressed: _isImporting ? null : () async {
+                                  await _importDatabase();
+                                  if (mounted) {
+                                    // After import, check if master password was created
+                                    final hasPassword = await hasMasterPassword();
+                                    final phrase = await getMasterPhrase();
+                                    if (hasPassword) {
+                                      // Imported DB has master password, go to login
+                                      setState(() {
+                                        _showChoice = false;
+                                        _isCreating = false;
+                                        _masterPhrase = phrase;
+                                      });
+                                    } else {
+                                      // Imported DB has no master password, stay in create mode
+                                      // User can still create password or import another DB
+                                    }
+                                  }
+                                },
+                                icon: _isImporting
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Icon(Icons.upload, size: 20),
+                                label: Text(
+                                  _isImporting ? 'Importing...' : 'Import Database Instead',
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  side: BorderSide(color: colorScheme.secondary, width: 2),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                          ],
+                          // Submit button (only show when not showing choice)
+                          if (!_showChoice)
+                            SizedBox(
+                              width: double.infinity,
+                              height: 56,
+                              child: ElevatedButton(
+                                onPressed: (_isLoading || _isImporting)
+                                    ? null
+                                    : (_isCreating ? _createMasterPassword : _verifyMasterPassword),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: colorScheme.primary,
                                 foregroundColor: colorScheme.onPrimary,
@@ -478,7 +768,7 @@ class _MasterPasswordPageState extends State<MasterPasswordPage> {
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
                                         Text(
-                                          _isCreating ? 'Create Password' : 'Unlock',
+                                          _isCreating ? language.createPassword : language.unlock,
                                           style: theme.textTheme.titleMedium?.copyWith(
                                             fontWeight: FontWeight.w600,
                                             letterSpacing: 0.5,
