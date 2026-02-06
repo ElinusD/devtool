@@ -22,17 +22,22 @@ const String iv = 'your_secret_iv44'; //16
 String? _cachedCryptoString;
 
 Future<String> _getCryptoString() async {
-  if (_cachedCryptoString != null) {
+  if (_cachedCryptoString != null && _cachedCryptoString!.isNotEmpty) {
     return _cachedCryptoString!;
   }
   await initDatabase();
-  _cachedCryptoString = await getSetting('crypto_string') ?? '78915030';
+  _cachedCryptoString = await getSetting('crypto_string');
+  if (_cachedCryptoString == null || _cachedCryptoString!.isEmpty) {
+    throw StateError(
+      'Crypto string not set. Set it in Settings or when creating a new database.',
+    );
+  }
   return _cachedCryptoString!;
 }
 
 Future<void> _refreshCryptoString() async {
   await initDatabase();
-  _cachedCryptoString = await getSetting('crypto_string') ?? '78915030';
+  _cachedCryptoString = await getSetting('crypto_string');
 }
 
 // Public function to refresh crypto string cache
@@ -84,7 +89,10 @@ String decryptTextSync(String encryptedText, {String? cryptoString}) {
   if (encryptedText == '') {
     return '';
   }
-  final cs = cryptoString ?? _cachedCryptoString ?? '78915030';
+  final cs = cryptoString ?? _cachedCryptoString;
+  if (cs == null || cs.isEmpty) {
+    throw StateError('Crypto string not set.');
+  }
   final cryptoKey = _getCryptoKey(cs);
   
   final encrypter = cryptoMaker.Encrypter(
@@ -102,7 +110,10 @@ String encryptTextSync(String text, {String? cryptoString}) {
   if (text == '') {
     return '';
   }
-  final cs = cryptoString ?? _cachedCryptoString ?? '78915030';
+  final cs = cryptoString ?? _cachedCryptoString;
+  if (cs == null || cs.isEmpty) {
+    throw StateError('Crypto string not set.');
+  }
   final cryptoKey = _getCryptoKey(cs);
   
   final encrypter = cryptoMaker.Encrypter(

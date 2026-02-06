@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:devtool/utils/db.dart';
+import 'package:devtool/utils/common.dart';
 import 'package:devtool/main.dart';
 import 'package:devtool/locale/Languages.dart';
 import 'package:file_picker/file_picker.dart';
@@ -17,9 +18,11 @@ class MasterPasswordPage extends StatefulWidget {
 class _MasterPasswordPageState extends State<MasterPasswordPage> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _cryptoStringController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isObscure = true;
   bool _isConfirmObscure = true;
+  bool _isCryptoStringObscure = true;
   bool _isLoading = false;
   bool _isCreating = false;
   String? _errorMessage;
@@ -96,6 +99,15 @@ class _MasterPasswordPageState extends State<MasterPasswordPage> {
       return;
     }
 
+    final cryptoStr = _cryptoStringController.text.trim();
+    if (cryptoStr.length < 8) {
+      final language = BaseLanguage.of(context);
+      setState(() {
+        _errorMessage = language.encryptionKeyMinLength;
+      });
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -103,6 +115,8 @@ class _MasterPasswordPageState extends State<MasterPasswordPage> {
 
     try {
       await initDatabase();
+      await setSetting('crypto_string', cryptoStr);
+      await refreshCryptoStringCache();
       await setMasterPassword(_passwordController.text);
       
       if (mounted) {
@@ -246,6 +260,7 @@ class _MasterPasswordPageState extends State<MasterPasswordPage> {
   void dispose() {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _cryptoStringController.dispose();
     super.dispose();
   }
 
@@ -560,7 +575,7 @@ class _MasterPasswordPageState extends State<MasterPasswordPage> {
                                 controller: _confirmPasswordController,
                                 obscureText: _isConfirmObscure,
                                 enabled: !_isLoading,
-                                textInputAction: TextInputAction.done,
+                                textInputAction: TextInputAction.next,
                                 onFieldSubmitted: (value) {
                                   if (!_isLoading) {
                                     _createMasterPassword();
@@ -623,6 +638,79 @@ class _MasterPasswordPageState extends State<MasterPasswordPage> {
                                   }
                                   if (value != _passwordController.text) {
                                     return language.passwordsDoNotMatch;
+                                  }
+                                  return null;
+                                },
+                              ),
+                              // Encryption key field (when creating new DB or new master password)
+                              const SizedBox(height: 20),
+                              TextFormField(
+                                controller: _cryptoStringController,
+                                obscureText: _isCryptoStringObscure,
+                                enabled: !_isLoading,
+                                textInputAction: TextInputAction.done,
+                                onFieldSubmitted: (value) {
+                                  if (!_isLoading) {
+                                    _createMasterPassword();
+                                  }
+                                },
+                                style: theme.textTheme.bodyLarge,
+                                decoration: InputDecoration(
+                                  labelText: language.encryptionKeyField,
+                                  hintText: language.encryptionKeyHint,
+                                  filled: true,
+                                  fillColor: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    borderSide: BorderSide(
+                                      color: colorScheme.outline.withOpacity(0.2),
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    borderSide: BorderSide(
+                                      color: colorScheme.primary,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  errorBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    borderSide: BorderSide(
+                                      color: colorScheme.error,
+                                    ),
+                                  ),
+                                  prefixIcon: Icon(
+                                    Icons.key_outlined,
+                                    color: colorScheme.primary,
+                                  ),
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      _isCryptoStringObscure
+                                          ? Icons.visibility_outlined
+                                          : Icons.visibility_off_outlined,
+                                      color: colorScheme.onSurface.withOpacity(0.6),
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        _isCryptoStringObscure = !_isCryptoStringObscure;
+                                      });
+                                    },
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 18,
+                                  ),
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return language.pleaseEnterEncryptionKey;
+                                  }
+                                  if (value.length < 8) {
+                                    return language.encryptionKeyMinLength;
                                   }
                                   return null;
                                 },

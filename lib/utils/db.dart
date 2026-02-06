@@ -68,7 +68,6 @@ Future<void> _initializeDefaultSettings(Database db) async {
   await db.insert(settingsTableName, {'key': 'password_numbers', 'value': 'true'});
   await db.insert(settingsTableName, {'key': 'password_special_char', 'value': 'true'});
   await db.insert(settingsTableName, {'key': 'password_uppercase', 'value': 'true'});
-  await db.insert(settingsTableName, {'key': 'crypto_string', 'value': '78915030'});
 }
 
 Future<String> getDBPath() async {
@@ -258,9 +257,11 @@ Future<void> changeCryptoString(String newCryptoString) async {
   
   await initDatabase();
   
-  // Get old crypto string
-  final oldCryptoString = await getSetting('crypto_string') ?? '78915030';
-  
+  // Get old crypto string (required for re-encryption)
+  final oldCryptoString = await getSetting('crypto_string');
+  if (oldCryptoString == null || oldCryptoString.isEmpty) {
+    throw Exception('No existing encryption key. Set it in Settings first.');
+  }
   if (oldCryptoString == newCryptoString) {
     return; // No change needed
   }

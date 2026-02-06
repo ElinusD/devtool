@@ -74,7 +74,7 @@ class _SettingsPageState extends State<SettingsPage> {
     final specialChar = (await getSetting('password_special_char') ?? 'true') == 'true';
     final uppercase = (await getSetting('password_uppercase') ?? 'true') == 'true';
     final masterPhrase = await getMasterPhrase() ?? '';
-    final cryptoString = await getSetting('crypto_string') ?? '78915030';
+    final cryptoString = await getSetting('crypto_string') ?? '';
 
     setState(() {
       _passwordLength = length;
