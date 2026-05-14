@@ -5,6 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:devtool/utils/db.dart';
 import '../utils/common.dart';
 
+/// Suffix toolbar height; width follows content so the text line is not squeezed by a fixed strip.
+final BoxConstraints _passwordsSuffixIconConstraints = BoxConstraints(
+  minHeight: 44,
+  maxHeight: 44,
+);
+
 class PasswordsPage extends StatefulWidget {
   const PasswordsPage({super.key});
 
@@ -82,6 +88,22 @@ class _PasswordsPageState extends State<PasswordsPage> {
     return listRows;
   }
 
+  /// Action icons grouped next to [HoverableCopyIconButton] (same visual weight as Copy).
+  Widget _suffixIconCluster(
+    TextEditingController controller, {
+    List<Widget> leading = const [],
+  }) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        ...leading,
+        if (leading.isNotEmpty) const SizedBox(width: 2),
+        HoverableCopyIconButton(textController: controller),
+      ],
+    );
+  }
+
   Widget itemWidget(Map<String, dynamic> item,
       {bool showSaveButton = true, bool hidePassword = true}) {
     _titleEditController.text = decryptTextSync(item['title']) ?? '';
@@ -140,82 +162,76 @@ class _PasswordsPageState extends State<PasswordsPage> {
               )
             ],
           ),
-          Table(
-            columnWidths: const {
-              0: FixedColumnWidth(90),
-            },
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TableRow(
-                children: [
-                  TableCell(
-                      verticalAlignment: TableCellVerticalAlignment.middle,
-                      child: Padding(
-                          padding: EdgeInsets.all(5),
-                          child: Text(
-                            language.title,
-                            style: const TextStyle(fontSize: 12),
-                          ))),
-                  TableCell(
-                      child: TextField(
-                    decoration: InputDecoration(
-                      enabledBorder: enabledUnderLineInputBorder(),
-                      focusedBorder: focusedUnderLineInputBorder(),
-                      isDense: true,
-                      hintText: language.title,
-                      hintStyle: const TextStyle(color: Colors.black26),
-                      contentPadding:
-                          const EdgeInsets.only(top: 17, bottom: 14, left: 5),
-                      suffixIcon: Padding(
-                        padding: const EdgeInsets.only(right: 12),
-                        child: HoverableCopyIconButton(
-                            textController: _titleEditController),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      language.title,
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 6),
+                    TextField(
+                      decoration: InputDecoration(
+                        enabledBorder: enabledUnderLineInputBorder(),
+                        focusedBorder: focusedUnderLineInputBorder(),
+                        isDense: true,
+                        hintText: language.title,
+                        hintStyle: const TextStyle(color: Colors.black26),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 5, vertical: 12),
+                        suffixIconConstraints: _passwordsSuffixIconConstraints,
+                        suffixIcon: _suffixIconCluster(_titleEditController),
                       ),
+                      controller: _titleEditController,
+                      style: const TextStyle(fontSize: 12),
                     ),
-                    controller: _titleEditController,
-                    style: const TextStyle(fontSize: 12),
-                  )),
-                ],
+                  ],
+                ),
               ),
-              TableRow(
-                children: [
-                  TableCell(
-                      verticalAlignment: TableCellVerticalAlignment.middle,
-                      child: Padding(
-                          padding: EdgeInsets.all(5),
-                          child: Text(
-                            language.login,
-                            style: const TextStyle(fontSize: 12),
-                          ))),
-                  TableCell(
-                      child: TextField(
-                    decoration: InputDecoration(
-                      enabledBorder: enabledUnderLineInputBorder(),
-                      focusedBorder: focusedUnderLineInputBorder(),
-                      isDense: true,
-                      hintText: language.login,
-                      hintStyle: TextStyle(color: Colors.black26),
-                      contentPadding:
-                          const EdgeInsets.only(top: 15, bottom: 0, left: 5),
-                      suffixIcon: HoverableCopyIconButton(
-                          textController: _loginEditController),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      language.login,
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
                     ),
-                    controller: _loginEditController,
-                    style: const TextStyle(fontSize: 12),
-                  )),
-                ],
+                    const SizedBox(height: 6),
+                    TextField(
+                      decoration: InputDecoration(
+                        enabledBorder: enabledUnderLineInputBorder(),
+                        focusedBorder: focusedUnderLineInputBorder(),
+                        isDense: true,
+                        hintText: language.login,
+                        hintStyle: const TextStyle(color: Colors.black26),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 5, vertical: 12),
+                        suffixIconConstraints: _passwordsSuffixIconConstraints,
+                        suffixIcon: _suffixIconCluster(_loginEditController),
+                      ),
+                      controller: _loginEditController,
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ],
+                ),
               ),
-              TableRow(
-                children: [
-                  TableCell(
-                      verticalAlignment: TableCellVerticalAlignment.middle,
-                      child: Padding(
-                          padding: EdgeInsets.all(5),
-                          child: Text(
-                            language.password,
-                            style: TextStyle(fontSize: 12),
-                          ))),
-                  TableCell(
-                    child: TextFormField(
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      language.password,
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
                       style: const TextStyle(fontSize: 13),
                       controller: _passwordEditController,
                       obscureText: hidePassword ? _isObscure : false,
@@ -224,130 +240,133 @@ class _PasswordsPageState extends State<PasswordsPage> {
                         focusedBorder: focusedUnderLineInputBorder(),
                         isDense: true,
                         hintText: language.password,
-                        hintStyle: TextStyle(color: Colors.black26),
-                        contentPadding:
-                            const EdgeInsets.only(top: 15, bottom: 0, left: 5),
-                        suffixIcon: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            hidePassword
-                                ? IconButton(
-                                    icon: Icon(
-                                      _isObscure
-                                          ? Icons.visibility
-                                          : Icons.visibility_off,
-                                      size: 15,
-                                    ),
-                                    onPressed: () {
-                                      setState(() {
-                                        _isObscure = !_isObscure;
-                                        itemWidgetData = itemWidget(item);
-                                      });
-                                    },
-                                  )
-                                : const SizedBox(),
+                        hintStyle: const TextStyle(color: Colors.black26),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 5, vertical: 12),
+                        suffixIconConstraints: _passwordsSuffixIconConstraints,
+                        suffixIcon: _suffixIconCluster(
+                          _passwordEditController,
+                          leading: [
+                            if (hidePassword)
+                              IconButton(
+                                padding: const EdgeInsets.all(6),
+                                constraints: const BoxConstraints(
+                                  minWidth: 36,
+                                  minHeight: 36,
+                                ),
+                                visualDensity: VisualDensity.compact,
+                                icon: Icon(
+                                  _isObscure
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                  size: 24,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _isObscure = !_isObscure;
+                                    itemWidgetData = itemWidget(item);
+                                  });
+                                },
+                              ),
                             IconButton(
+                              padding: const EdgeInsets.all(6),
+                              constraints: const BoxConstraints(
+                                minWidth: 36,
+                                minHeight: 36,
+                              ),
+                              visualDensity: VisualDensity.compact,
                               icon: const Icon(
                                 Icons.autorenew,
-                                size: 15,
+                                size: 24,
                               ),
                               onPressed: () async {
                                 _passwordEditController.text =
                                     await generateNewPassword();
                               },
                             ),
-                            Padding(
-                                padding: const EdgeInsets.only(right: 12),
-                                child: HoverableCopyIconButton(
-                                    textController: _passwordEditController))
                           ],
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-              TableRow(
-                children: [
-                  TableCell(
-                      verticalAlignment: TableCellVerticalAlignment.middle,
-                      child: Padding(
-                          padding: EdgeInsets.all(5),
-                          child: Text(
-                            language.url,
-                            style: TextStyle(fontSize: 12),
-                          ))),
-                  TableCell(
-                      child: TextField(
-                    decoration: InputDecoration(
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      language.url,
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 6),
+                    TextField(
+                      decoration: InputDecoration(
                         enabledBorder: enabledUnderLineInputBorder(),
                         focusedBorder: focusedUnderLineInputBorder(),
                         isDense: true,
                         hintText: language.url,
-                        hintStyle: TextStyle(color: Colors.black26),
-                        contentPadding:
-                            const EdgeInsets.only(top: 16, bottom: 0, left: 5),
-                        suffixIcon:
-                            Row(mainAxisSize: MainAxisSize.min, children: [
-                          HoverableUrlOpenIconButton(
-                              textController: _urlEditController),
-                          const SizedBox(
-                            width: 10,
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(right: 12),
-                            child: HoverableCopyIconButton(
+                        hintStyle: const TextStyle(color: Colors.black26),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 5, vertical: 12),
+                        suffixIconConstraints: _passwordsSuffixIconConstraints,
+                        suffixIcon: _suffixIconCluster(
+                          _urlEditController,
+                          leading: [
+                            HoverableUrlOpenIconButton(
                                 textController: _urlEditController),
-                          )
-                        ])),
-                    controller: _urlEditController,
-                    style: TextStyle(fontSize: 12),
-                  )),
-                ],
-              ),
-              TableRow(
-                children: [
-                  TableCell(
-                      verticalAlignment: TableCellVerticalAlignment.middle,
-                      child: Padding(
-                          padding: EdgeInsets.all(5),
-                          child: Text(
-                            language.comment,
-                            style: TextStyle(fontSize: 12),
-                          ))),
-                  TableCell(
-                      child: TextField(
-                    decoration: InputDecoration(
-                      enabledBorder: enabledUnderLineInputBorder(),
-                      focusedBorder: focusedUnderLineInputBorder(),
-                      isDense: true,
-                      hintText: language.comment,
-                      hintStyle: const TextStyle(color: Colors.black26),
-                      contentPadding:
-                          const EdgeInsets.only(top: 17, bottom: 14, left: 5),
+                          ],
+                        ),
+                      ),
+                      controller: _urlEditController,
+                      style: const TextStyle(fontSize: 12),
                     ),
-                    controller: _commentEditController,
-                    style: const TextStyle(fontSize: 12),
-                  )),
-                ],
+                  ],
+                ),
               ),
-              TableRow(
-                children: [
-                  TableCell(
-                      verticalAlignment: TableCellVerticalAlignment.middle,
-                      child: Padding(
-                          padding: const EdgeInsets.only(top: 10, left: 5),
-                          child: Text(
-                            language.changed,
-                            style: const TextStyle(fontSize: 12, color: Colors.black38),
-                          ))),
-                  TableCell(
-                      child: Padding(
-                          padding: const EdgeInsets.only(top: 10, left: 5),
-                          child: Text(changed,
-                    style: const TextStyle(fontSize: 12, color: Colors.black38),
-                  )),)
-                ],
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      language.comment,
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 6),
+                    TextField(
+                      decoration: InputDecoration(
+                        enabledBorder: enabledUnderLineInputBorder(),
+                        focusedBorder: focusedUnderLineInputBorder(),
+                        isDense: true,
+                        hintText: language.comment,
+                        hintStyle: const TextStyle(color: Colors.black26),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 5, vertical: 12),
+                      ),
+                      controller: _commentEditController,
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      language.changed,
+                      style: const TextStyle(fontSize: 12, color: Colors.black38),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      changed,
+                      style: const TextStyle(fontSize: 12, color: Colors.black38),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -501,8 +520,9 @@ class _PasswordsPageState extends State<PasswordsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromRGBO(240, 240, 240, 1),
-      body: Center(
+      body: SizedBox.expand(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(
               height: 12,
@@ -512,86 +532,109 @@ class _PasswordsPageState extends State<PasswordsPage> {
               height: 12,
             ),
             Expanded(
-              child: Row(children: [
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.only(left: 14, right: 14),
-                    margin: const EdgeInsets.fromLTRB(10, 0, 12, 0),
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(13),
-                          topRight: Radius.circular(13)),
-                      color: Colors.white,
-                    ),
-                    child: Column(children: [
-                      Row(
-                        children: [
-                          Expanded(
-                              child: Container(
-                                  padding: const EdgeInsets.all(10),
-                                  child: Text(
-                                    language.title,
-                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                                  ))),
-                          Expanded(
-                              child: Container(
-                                  padding: const EdgeInsets.all(10),
-                                  child: Text(
-                                    language.login,
-                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                                  ))),
-                          Expanded(
-                              child: Container(
-                                  padding: const EdgeInsets.all(10),
-                                  child: Text(
-                                    language.passwordStrength,
-                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                                  ))),
-                          Expanded(
-                              child: Container(
-                                  padding: const EdgeInsets.all(10),
-                                  child: Text(
-                                    language.url,
-                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                                  ))),
-                        ],
-                      ),
+              child: LayoutBuilder(
+                builder: (context, rowConstraints) {
+                  final panelH = rowConstraints.maxHeight;
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
                       Expanded(
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.vertical,
-                          child: Column(
-                            children: _itemsList,
+                        child: Container(
+                          padding: const EdgeInsets.only(left: 14, right: 14),
+                          margin: const EdgeInsets.fromLTRB(10, 0, 12, 0),
+                          decoration: const BoxDecoration(
+                            borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(13),
+                                topRight: Radius.circular(13)),
+                            color: Colors.white,
                           ),
+                          child: Column(children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                    child: Container(
+                                        padding: const EdgeInsets.all(10),
+                                        child: Text(
+                                          language.title,
+                                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                                        ))),
+                                Expanded(
+                                    child: Container(
+                                        padding: const EdgeInsets.all(10),
+                                        child: Text(
+                                          language.login,
+                                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                                        ))),
+                                Expanded(
+                                    child: Container(
+                                        padding: const EdgeInsets.all(10),
+                                        child: Text(
+                                          language.passwordStrength,
+                                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                                        ))),
+                                Expanded(
+                                    child: Container(
+                                        padding: const EdgeInsets.all(10),
+                                        child: Text(
+                                          language.url,
+                                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                                        ))),
+                              ],
+                            ),
+                            Expanded(
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.vertical,
+                                child: Column(
+                                  children: _itemsList,
+                                ),
+                              ),
+                            ),
+                          ]),
                         ),
                       ),
-                    ]),
-                  ),
-                ),
-                Visibility(
-                  visible: itemWidgetVisible,
-                  child: itemWidgetData ?? const SizedBox.shrink(),
-                ),
-                Visibility(
-                  visible: !itemWidgetVisible,
-                  child: Container(
-                      width: 340,
-                      padding: const EdgeInsets.all(16.0),
-                      margin: const EdgeInsets.fromLTRB(0, 0, 12, 0),
-                      decoration: const BoxDecoration(
-                        borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(13), topRight: Radius.circular(13)),
-                        color: Colors.white,
+                      SizedBox(
+                        width: 340,
+                        height: panelH,
+                        child: itemWidgetVisible
+                            ? SingleChildScrollView(
+                                child: ConstrainedBox(
+                                  constraints: BoxConstraints(minHeight: panelH),
+                                  child: itemWidgetData ?? const SizedBox.shrink(),
+                                ),
+                              )
+                            : Container(
+                                width: 340,
+                                padding: const EdgeInsets.all(16.0),
+                                margin: const EdgeInsets.fromLTRB(0, 0, 12, 0),
+                                decoration: const BoxDecoration(
+                                  borderRadius: BorderRadius.only(
+                                      topLeft: Radius.circular(13),
+                                      topRight: Radius.circular(13)),
+                                  color: Colors.white,
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      language.passwordStrengthRecommendations,
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                    ),
+                                    Expanded(
+                                      child: SingleChildScrollView(
+                                        child: Text(
+                                          language.passwordStrengthRecommendationsText,
+                                          style: const TextStyle(fontSize: 12),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                       ),
-                      child: Column(
-                        children: [
-                          Text(language.passwordStrengthRecommendations, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),),
-                          Expanded(child: Text(language.passwordStrengthRecommendationsText, style: const TextStyle(fontSize: 12),))
-                        ],
-                      ),
-                  )
-                ),
-
-              ]),
+                    ],
+                  );
+                },
+              ),
             ),
           ],
         ),
@@ -611,16 +654,21 @@ class _PasswordsPageState extends State<PasswordsPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(language.enterNewRecordData),
-          content: Column(mainAxisSize: MainAxisSize.min, children: [
-            itemWidget({
-              'id': 0,
-              'title': '',
-              'login': '',
-              'password': '',
-              'url': '',
-              'comment': ''
-            }, showSaveButton: false, hidePassword: false),
-          ]),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                itemWidget({
+                  'id': 0,
+                  'title': '',
+                  'login': '',
+                  'password': '',
+                  'url': '',
+                  'comment': ''
+                }, showSaveButton: false, hidePassword: false),
+              ],
+            ),
+          ),
           actions: [
             TextButton(
               onPressed: () {

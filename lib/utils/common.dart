@@ -326,11 +326,14 @@ class _HoverableCopyIconButtonState extends State<HoverableCopyIconButton> {
             _isHovered = false;
           });
         },
-        child: Icon(
-          Icons.copy,
+        child: Padding(
           key: _buttonKey,
-          size: 15,
-          color: _isHovered ? Colors.black : Colors.grey,
+          padding: const EdgeInsets.all(6),
+          child: Icon(
+            Icons.copy,
+            size: 24,
+            color: _isHovered ? Colors.black : Colors.grey,
+          ),
         ),
       ),
     );
@@ -376,10 +379,13 @@ class _HoverableUrlOpenIconButtonState extends State<HoverableUrlOpenIconButton>
             _isHovered = false;
           });
         },
-        child: Icon(
-          Icons.open_in_browser,
-          size: 15,
-          color: _isHovered ? Colors.black : Colors.grey,
+        child: Padding(
+          padding: const EdgeInsets.all(6),
+          child: Icon(
+            Icons.open_in_browser,
+            size: 24,
+            color: _isHovered ? Colors.black : Colors.grey,
+          ),
         ),
       ),
     );

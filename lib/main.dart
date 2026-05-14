@@ -34,7 +34,7 @@ void main() async {
 
   await windowManager.ensureInitialized();
 
-  WindowManager.instance.setSize(const Size(1300, 700));
+  WindowManager.instance.setSize(const Size(1300, 1000));
   WindowManager.instance.setMinimumSize(const Size(1200, 700));
 
   runApp(const MyApp());
